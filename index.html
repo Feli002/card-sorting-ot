@@ -13,7 +13,7 @@
 :root{
   --bg:#e9efee;--surface:#fbfdfc;--sunken:#dde6e4;--ink:#122a2e;--muted:#566c70;--line:#c3d1cf;
   --accent:#0a6a6e;--accent-ink:#ffffff;--pick:#f6c445;--pick-ink:#3a2b00;--danger:#b23a2e;--ok:#23704a;
-  --card:#ffffff;--shadow:0 1px 0 rgba(18,42,46,.1),0 2px 6px rgba(18,42,46,.08);
+  --card:#ffffff;--shadow:0 1px 0 rgba(18,42,46,.1),0 2px 6px rgba(18,42,46,.08);--mod-bg:#efe4fb;--mod-line:#7637c8;--mod-ink:#4b1f8c;
   --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;
   --body:"Schibsted Grotesk","Segoe UI",system-ui,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
@@ -22,11 +22,11 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0f1b1e;--surface:#16262a;--sunken:#0b1416;--ink:#e4efee;--muted:#9db2b4;--line:#2c4347;
   --accent:#4cc3c0;--accent-ink:#06282a;--pick:#f6c445;--pick-ink:#3a2b00;--danger:#ef8a7c;--ok:#74cfa0;
-  --card:#1d3136;--shadow:0 1px 0 rgba(0,0,0,.4);color-scheme:dark}}
+  --card:#1d3136;--shadow:0 1px 0 rgba(0,0,0,.4);--mod-bg:#35234f;--mod-line:#b58bf0;--mod-ink:#dcc6fa;color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0f1b1e;--surface:#16262a;--sunken:#0b1416;--ink:#e4efee;--muted:#9db2b4;--line:#2c4347;
   --accent:#4cc3c0;--accent-ink:#06282a;--pick:#f6c445;--pick-ink:#3a2b00;--danger:#ef8a7c;--ok:#74cfa0;
-  --card:#1d3136;--shadow:0 1px 0 rgba(0,0,0,.4);color-scheme:dark}
+  --card:#1d3136;--shadow:0 1px 0 rgba(0,0,0,.4);--mod-bg:#35234f;--mod-line:#b58bf0;--mod-ink:#dcc6fa;color-scheme:dark}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--body);min-height:100dvh}
@@ -80,6 +80,7 @@ textarea{min-height:90px;resize:vertical}
 .deck-list{overflow:auto;display:flex;flex-direction:column;gap:6px;padding:2px;flex:1;min-height:0}
 .empty{color:var(--muted);padding:12px;text-align:center}
 .tcard{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:.5rem .6rem;box-shadow:var(--shadow);line-height:1.3;font-size:.95rem;font-weight:500;touch-action:manipulation;user-select:none;-webkit-user-select:none;min-height:44px;overflow-wrap:anywhere}
+.tcard,.cardwrap{flex:none}
 .tcard:hover{border-color:var(--accent)}
 .tcard[aria-pressed="true"]{background:var(--pick);color:var(--pick-ink);border-color:var(--pick)}
 .tcard.ghosted{opacity:.35}
@@ -95,10 +96,24 @@ textarea{min-height:90px;resize:vertical}
 .icon{border:0;background:none;width:36px;height:36px;border-radius:6px;color:var(--muted);flex:none}
 .icon:hover{background:var(--sunken);color:var(--ink)}
 .pile-cards{display:flex;flex-direction:column;gap:5px;max-height:320px;overflow:auto;padding:1px}
-.unknown .pile-cards{flex-direction:row;flex-wrap:wrap}
-.unknown .tcard{width:auto;max-width:100%}
 .drop-hint{font-size:.88rem;color:var(--muted)}
 .is-over{outline:3px solid var(--accent);outline-offset:1px}
+.fixed-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fixed-row .pile-cards{max-height:190px}
+.fixed-tag{font-size:.74rem;color:var(--muted);white-space:nowrap}
+.tag{font:500 .7rem var(--mono);background:var(--mod-line);color:var(--mod-bg);border-radius:4px;padding:0 5px;white-space:nowrap}
+.pile.mod{background:var(--mod-bg);border-color:var(--mod-line)}
+.pile.mod .pile-head input{border-color:var(--mod-line);color:var(--mod-ink)}
+.cardwrap{position:relative;display:block}
+.cardwrap .tcard{padding-right:2.3rem}
+.cardwrap .edit{position:absolute;right:3px;top:3px;width:34px;height:34px;border:0;background:none;border-radius:5px;color:var(--mod-ink)}
+.cardwrap .edit:hover{background:var(--mod-line);color:var(--mod-bg)}
+.tcard.mod{background:var(--mod-bg);border-color:var(--mod-line);color:var(--mod-ink)}
+.tcard.mod small{display:block;font-weight:400;font-size:.8rem;line-height:1.25;margin-top:2px}
+.tcard.mod[aria-pressed="true"]{background:var(--pick);color:var(--pick-ink);border-color:var(--mod-line)}
+.legend{display:flex;align-items:center;gap:.5rem;font-size:.86rem;color:var(--muted)}
+.deck-tools{display:flex;gap:8px}
+.deck-tools .btn{flex:1}
 .piles{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;align-items:start}
 .newpile{border:2px dashed var(--line);background:none;border-radius:10px;min-height:96px;font-weight:600;color:var(--accent);padding:12px}
 .newpile:hover{border-color:var(--accent)}
@@ -149,7 +164,7 @@ canvas{display:block}
   .top{position:static}
   .table{grid-template-columns:minmax(0,1fr)}
   .deck{position:static;max-height:46dvh}
-  .piles{grid-template-columns:minmax(0,1fr)}
+  .piles,.fixed-row{grid-template-columns:minmax(0,1fr)}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -157,13 +172,16 @@ canvas{display:block}
 <body>
 <main id="app"></main>
 <dialog id="dlg"></dialog>
-<script id="cards-data" type="application/json">[{"l":"Vista 360","o":["Estructurales · Estructurales · fila 5"],"p":"ambos","id":"c001"},{"l":"Header","o":["Estructurales · Estructurales · fila 6"],"p":"ambos","id":"c002"},{"l":"Sidebar","o":["Estructurales · Estructurales · fila 7"],"p":"ambos","id":"c003"},{"l":"Cambio de PDV","o":["Estructurales · Estructurales · fila 8"],"p":"ambos","id":"c004"},{"l":"Información General","o":["Estructurales · Secciones Vista 360 · fila 11"],"p":"ambos","id":"c005"},{"l":"Contacto","o":["Estructurales · Secciones Vista 360 · fila 12"],"p":"ambos","id":"c006"},{"l":"Direcciones","o":["Estructurales · Secciones Vista 360 · fila 13"],"p":"ambos","id":"c007"},{"l":"Perfil de facturación (sección Vista 360)","o":["Estructurales · Secciones Vista 360 · fila 14"],"p":"ambos","id":"c008"},{"l":"Documentación","o":["Estructurales · Secciones Vista 360 · fila 15"],"p":"ambos","id":"c009"},{"l":"Usuarios","o":["Estructurales · Secciones Vista 360 · fila 16"],"p":"ambos","id":"c010"},{"l":"Cuenta Corriente","o":["Estructurales · Secciones Vista 360 · fila 17","Gestión · Proyectos · fila 41"],"p":"ambos","id":"c011"},{"l":"Mapa de red","o":["Estructurales · Secciones Vista 360 · fila 18","Gestión · Proyectos · fila 42"],"p":"ambos","id":"c012"},{"l":"Boletas vigente - total a pagar","o":["Estructurales · Boleta · fila 20"],"p":"ambos","id":"c013"},{"l":"Oferta plan móvil","o":["Estructurales · Campañas cliente · fila 22"],"p":"ambos","id":"c014"},{"l":"Oferta hogar","o":["Estructurales · Campañas cliente · fila 23"],"p":"ambos","id":"c015"},{"l":"Oferta en equipos","o":["Estructurales · Campañas cliente · fila 24"],"p":"ambos","id":"c016"},{"l":"Oferta prepago","o":["Estructurales · Campañas cliente · fila 25"],"p":"ambos","id":"c017"},{"l":"Campaña Buyback","o":["Estructurales · Campañas cliente · fila 26"],"p":"CL","id":"c018"},{"l":"Assets Hogar","o":["Estructurales · Assets · fila 28"],"p":"ambos","id":"c019"},{"l":"Assets Móvil","o":["Estructurales · Assets · fila 29"],"p":"ambos","id":"c020"},{"l":"Assets: otros productos","o":["Estructurales · Assets · fila 30"],"p":"ambos","id":"c021"},{"l":"Últimas solicitudes","o":["Estructurales · Generales · fila 32"],"p":"ambos","id":"c022"},{"l":"Acciones generales - Venta","o":["Estructurales · Generales · fila 33"],"p":"ambos","id":"c023"},{"l":"Acciones generales - Postventa","o":["Estructurales · Generales · fila 34"],"p":"ambos","id":"c024"},{"l":"Otras acciones","o":["Estructurales · Generales · fila 35"],"p":"ambos","id":"c025"},{"l":"Marca: Afinidad / Marca cliente","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 37"],"p":"CL","id":"c026"},{"l":"Marca: Afinidad / Descuento afinidad","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 38"],"p":"CL","id":"c027"},{"l":"Marca: Entel Visa","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 39"],"p":"CL","id":"c028"},{"l":"Marcas especiales","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 40"],"p":"ambos","id":"c029"},{"l":"Marca: IVR","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 41"],"p":"CL","id":"c030"},{"l":"Marca: ARM / Fraude","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 42"],"p":"ambos","id":"c031"},{"l":"Marca: Bloqueo FMS","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 43"],"p":"PE","id":"c032"},{"l":"Factibilidad crediticia","o":["Estructurales · Trasnversales · fila 45"],"p":"ambos","id":"c033"},{"l":"Catálogo de planes Móviles","o":["Estructurales · Trasnversales · fila 46"],"p":"ambos","id":"c034"},{"l":"Catálogo de Equipos y Accesorios","o":["Estructurales · Trasnversales · fila 47"],"p":"ambos","id":"c035"},{"l":"Resumen de ventas + Idioma + Publicidad","o":["Estructurales · Trasnversales · fila 48"],"p":"PE","id":"c036"},{"l":"Resumen generales","o":["Estructurales · Trasnversales · fila 49"],"p":"ambos","id":"c037"},{"l":"Perfil de facturación (paso transversal)","o":["Estructurales · Trasnversales · fila 50"],"p":"ambos","id":"c038"},{"l":"Delivery","o":["Estructurales · Trasnversales · fila 51"],"p":"ambos","id":"c039"},{"l":"Validación de identidad","o":["Estructurales · Trasnversales · fila 52"],"p":"ambos","id":"c040"},{"l":"Validación Cliente Extranjero","o":["Estructurales · Trasnversales · fila 53"],"p":"PE","id":"c041"},{"l":"Validación Asesor","o":["Estructurales · Trasnversales · fila 54"],"p":"PE","id":"c042"},{"l":"Validación Asesor Extranjero","o":["Estructurales · Trasnversales · fila 55"],"p":"PE","id":"c043"},{"l":"Contraseña única / creación","o":["Estructurales · Trasnversales · fila 56"],"p":"PE","id":"c044"},{"l":"Contraseña única / validación","o":["Estructurales · Trasnversales · fila 57"],"p":"PE","id":"c045"},{"l":"Contraseña única / restaurar","o":["Estructurales · Trasnversales · fila 58"],"p":"PE","id":"c046"},{"l":"Condiciones de Uso / Móvil","o":["Estructurales · Trasnversales · fila 59"],"p":"PE","id":"c047"},{"l":"Condiciones de Uso / Móvil Portabilidad","o":["Estructurales · Trasnversales · fila 60"],"p":"PE","id":"c048"},{"l":"Condiciones de Uso / Móvil Desbloqueo","o":["Estructurales · Trasnversales · fila 61"],"p":"PE","id":"c049"},{"l":"Biometría Facial","o":["Estructurales · Trasnversales · fila 62"],"p":"CL","id":"c050"},{"l":"Assets Hogar y Móvil (complemento)","o":["Estructurales · Complementos · fila 65"],"p":"ambos","id":"c051"},{"l":"Activación Postpago","o":["Ventas · Activaciones Móviles · fila 6"],"p":"ambos","id":"c052"},{"l":"Activación Prepago","o":["Ventas · Activaciones Móviles · fila 7"],"p":"ambos","id":"c053"},{"l":"BAM","o":["Ventas · Activaciones Móviles · fila 8"],"p":"PE","id":"c054"},{"l":"Activación Prepago Anónimo","o":["Ventas · Activaciones Móviles · fila 9"],"p":"CL","id":"c055"},{"l":"Pago Anticipado","o":["Ventas · Activaciones Móviles · fila 10"],"p":"CL","id":"c056"},{"l":"Portabilidad Postpago - CAP","o":["Ventas · Portabilidad · fila 12"],"p":"CL","id":"c057"},{"l":"Portabilidad Prepago - CAP","o":["Ventas · Portabilidad · fila 14"],"p":"CL","id":"c058"},{"l":"Portabilidad Postpago - PIN","o":["Ventas · Portabilidad · fila 15"],"p":"PE","id":"c059"},{"l":"Portabilidad Prepago","o":["Ventas · Portabilidad · fila 16"],"p":"PE","id":"c060"},{"l":"Consulta de portabilidad","o":["Ventas · Portabilidad · fila 17","Gestión · Consultas · fila 36"],"p":"ambos","id":"c061"},{"l":"Buyback: Venta Canal presencial","o":["Ventas · Buyback · fila 19"],"p":"ambos","id":"c062"},{"l":"Buyback: Anulación y cancelación (Fase 1)","o":["Ventas · Buyback · fila 20"],"p":"ambos","id":"c063"},{"l":"Prepago - Comprar bolsa","o":["Ventas · Bolsas · fila 22"],"p":"ambos","id":"c064"},{"l":"Postpago - Comprar bolsa","o":["Ventas · Bolsas · fila 23"],"p":"ambos","id":"c065"},{"l":"Postpago - Bolsas Fast","o":["Ventas · Bolsas · fila 24"],"p":"ambos","id":"c066"},{"l":"Suscripción - Bolsa Roaming","o":["Ventas · Bolsas · fila 25"],"p":"CL","id":"c067"},{"l":"Recarga One Shot","o":["Ventas · Recargas · fila 27"],"p":"PE","id":"c068"},{"l":"Recarga recurrente","o":["Ventas · Recargas · fila 28"],"p":"PE","id":"c069"},{"l":"Asociar seguro","o":["Ventas · Seguros · fila 30"],"p":"CL","id":"c070"},{"l":"Seguro posterior a venta","o":["Ventas · Seguros · fila 31"],"p":"CL","id":"c071"},{"l":"Venta seguro","o":["Ventas · Seguros · fila 32"],"p":"PE","id":"c072"},{"l":"Cambio de equipo ACOC","o":["Ventas · Equipo · fila 34"],"p":"ambos","lp":"Cambio de equipo","id":"c073"},{"l":"Aceleración de cuotas","o":["Ventas · Equipo · fila 35","Postventa · Anulación, cancelación y aceleración · fila 6"],"p":"ambos","id":"c074"},{"l":"Venta Hogar: Postpago - Alámbrica","o":["Ventas · Venta Hogar · fila 40"],"p":"ambos","lp":"Venta Hogar: FTTH - Venta Pack Fibra","id":"c075"},{"l":"Venta Hogar: TFI - Postpago","o":["Ventas · Venta Hogar · fila 42"],"p":"PE","id":"c076"},{"l":"Venta Hogar: Postpago Indoor - INA","o":["Ventas · Venta Hogar · fila 43"],"p":"PE","id":"c077"},{"l":"Venta Hogar: Postpago Outdoor - INA","o":["Ventas · Venta Hogar · fila 44"],"p":"PE","id":"c078"},{"l":"Venta Hogar: Prepago Indoor","o":["Ventas · Venta Hogar · fila 45"],"p":"PE","id":"c079"},{"l":"Portabilidad Hogar: Alámbrica","o":["Ventas · Portabilidad hogar · fila 47"],"p":"CL","id":"c080"},{"l":"Portabilidad Hogar: Postpago Indoor - INA","o":["Ventas · Portabilidad hogar · fila 48"],"p":"PE","id":"c081"},{"l":"Portabilidad Hogar: Postpago Outdoor - INA","o":["Ventas · Portabilidad hogar · fila 49"],"p":"PE","id":"c082"},{"l":"Portabilidad Hogar: Prepago Indoor","o":["Ventas · Portabilidad hogar · fila 50"],"p":"PE","id":"c083"},{"l":"Portabilidad Hogar: TFI - Postpago","o":["Ventas · Portabilidad hogar · fila 51"],"p":"PE","id":"c084"},{"l":"Factibilidad Técnica con venta","o":["Ventas · Factibilidad técnica · fila 53"],"p":"CL","id":"c085"},{"l":"Entel TV - Base","o":["Ventas · Entel TV · fila 55"],"p":"CL","id":"c086"},{"l":"Entel TV + Deco","o":["Ventas · Entel TV · fila 56"],"p":"CL","id":"c087"},{"l":"Venta Suelta Convergente (Hogar, Móvil y Accesorios)","o":["Ventas · Catálogo · fila 59"],"p":"CL","id":"c088"},{"l":"Venta Suelta - Móvil","o":["Ventas · Catálogo · fila 60"],"p":"ambos","id":"c089"},{"l":"Venta Suelta - Hogar","o":["Ventas · Catálogo · fila 61"],"p":"ambos","id":"c090"},{"l":"Venta Hogar - FTTH","o":["Ventas · Catálogo · fila 62"],"p":"PE","id":"c091"},{"l":"Anulación Móvil","o":["Postventa · Anulación, cancelación y aceleración · fila 7"],"p":"ambos","id":"c092"},{"l":"Cancelación Móvil","o":["Postventa · Anulación, cancelación y aceleración · fila 8","Postventa · Anulación, cancelación y aceleración · fila 9"],"p":"ambos","id":"c093"},{"l":"Anulación Hogar","o":["Postventa · Anulación, cancelación y aceleración · fila 10"],"p":"ambos","lp":"Anulación Hogar + FTTH","id":"c094"},{"l":"Cancelación Hogar","o":["Postventa · Anulación, cancelación y aceleración · fila 11"],"p":"ambos","lp":"Cancelación Hogar + FTTH","id":"c095"},{"l":"Anulación Entel TV","o":["Postventa · Anulación, cancelación y aceleración · fila 12"],"p":"CL","id":"c096"},{"l":"Cancelación Entel TV","o":["Postventa · Anulación, cancelación y aceleración · fila 13"],"p":"CL","id":"c097"},{"l":"Bloqueo Móvil","o":["Postventa · Bloqueo y desbloqueo · fila 15"],"p":"ambos","id":"c098"},{"l":"Desbloqueo Móvil","o":["Postventa · Bloqueo y desbloqueo · fila 16"],"p":"ambos","id":"c099"},{"l":"Bloqueo Hogar","o":["Postventa · Bloqueo y desbloqueo · fila 17"],"p":"CL","id":"c100"},{"l":"Desbloqueo Hogar","o":["Postventa · Bloqueo y desbloqueo · fila 18"],"p":"CL","id":"c101"},{"l":"Desbloqueo + Face ID","o":["Postventa · Bloqueo y desbloqueo · fila 19"],"p":"CL","id":"c102"},{"l":"Bloqueo por Fraude/Contratación no solicitada","o":["Postventa · Bloqueo y desbloqueo · fila 20","Postventa · Otras acciones · fila 105"],"p":"PE","id":"c103"},{"l":"Desbloqueo por Fraude/Contratación no solicitada","o":["Postventa · Bloqueo y desbloqueo · fila 21"],"p":"PE","id":"c104"},{"l":"Renteseg: Bloqueo Móvil","o":["Postventa · Renteseg · fila 23"],"p":"PE","id":"c105"},{"l":"Renteseg: Desbloqueo Móvil","o":["Postventa · Renteseg · fila 24"],"p":"PE","id":"c106"},{"l":"Renteseg: Consulta de IMEI","o":["Postventa · Renteseg · fila 25"],"p":"PE","id":"c107"},{"l":"Renteseg: Registro de IMEI/ Fraude","o":["Postventa · Renteseg · fila 26"],"p":"PE","id":"c108"},{"l":"Cambio plan Móvil - Postpago","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 30"],"p":"ambos","id":"c109"},{"l":"Cambio plan Móvil - Prepago","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 31"],"p":"ambos","id":"c110"},{"l":"Cambio de Plan por Excepción/Blindaje","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 32"],"p":"CL","id":"c111"},{"l":"Cambio de Plan + Compra de equipo Móvil","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 33"],"p":"CL","id":"c112"},{"l":"Cambio de plan: Inalámbrico / downgrade-upgrade-upselling","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 34"],"p":"ambos","id":"c113"},{"l":"Cambio de plan: Inalámbrico / upselling con portabilidad","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 35"],"p":"ambos","id":"c114"},{"l":"Cambio de plan: Inalámbrico-Fibra (cambio de tecnología) / Hogar","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 36"],"p":"CL","id":"c115"},{"l":"Cambio de plan / Upselling Indoor + TFI","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 38"],"p":"PE","id":"c116"},{"l":"Cambio de plan/ Mono TFI pp a pp/ps a ps","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 39"],"p":"PE","id":"c117"},{"l":"Cambio de plan: Fibra","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 40"],"p":"ambos","lp":"FTTH-Guías 48-49 - Cambio de plan sin instalación","id":"c118"},{"l":"Cambio de SIM - Móvil","o":["Postventa · Cambio de SIM, Número y Equipo · fila 42"],"p":"ambos","id":"c119"},{"l":"Cambio de SIM - Hogar","o":["Postventa · Cambio de SIM, Número y Equipo · fila 43"],"p":"ambos","id":"c120"},{"l":"Cambio de Número - Hogar","o":["Postventa · Cambio de SIM, Número y Equipo · fila 44"],"p":"ambos","id":"c121"},{"l":"Cambio de Número - Móvil_Postpago","o":["Postventa · Cambio de SIM, Número y Equipo · fila 45"],"p":"ambos","id":"c122"},{"l":"Cambio de Número - Móvil_Prepago","o":["Postventa · Cambio de SIM, Número y Equipo · fila 46"],"p":"ambos","id":"c123"},{"l":"Cambio de Equipo - Móvil","o":["Postventa · Cambio de SIM, Número y Equipo · fila 47"],"p":"CL","id":"c124"},{"l":"Renuncia Prepago Móvil","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 49"],"p":"CL","id":"c125"},{"l":"Renuncia/Migración Móvil","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 50"],"p":"ambos","lp":"Renuncia + Migración","id":"c126"},{"l":"Renuncia Prepago","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 51"],"p":"PE","id":"c127"},{"l":"Renuncia con desinstalación Hogar","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 52"],"p":"CL","id":"c128"},{"l":"Renuncia Full hogar inalámbrico con desinstalación","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 53"],"p":"PE","id":"c129"},{"l":"FTTH-Renuncia total","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 54"],"p":"PE","id":"c130"},{"l":"Renuncia Full Hogar ALA","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 55"],"p":"CL","id":"c131"},{"l":"Renuncia con Downselling Hogar ALA","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 56"],"p":"CL","id":"c132"},{"l":"Renuncia outdoor Hogar INA","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 57"],"p":"ambos","lp":"Renuncia y Downsellings INA","id":"c133"},{"l":"Migración PP a PS + equipo","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 58"],"p":"ambos","id":"c134"},{"l":"Migración Full - Inalámbrico / Hogar","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 59"],"p":"CL","id":"c135"},{"l":"Migración Hogar / Postpago a Prepago desde Renuncia","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 60"],"p":"PE","id":"c136"},{"l":"Migración Dúo a Mono / TFI a Prepago","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 61"],"p":"PE","id":"c137"},{"l":"Migración TFI","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 62"],"p":"PE","id":"c138"},{"l":"Migración Hogar / TFI Prepago","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 63"],"p":"PE","id":"c139"},{"l":"Susp. Temporal - Móvil","o":["Postventa · Suspensiones y reactivaciones · fila 65","Postventa · Suspensiones y reactivaciones · fila 67"],"p":"ambos","id":"c140"},{"l":"Susp. Temporal - Hogar","o":["Postventa · Suspensiones y reactivaciones · fila 66","Postventa · Suspensiones y reactivaciones · fila 68"],"p":"ambos","id":"c141"},{"l":"Reactivar línea - Móvil","o":["Postventa · Suspensiones y reactivaciones · fila 69"],"p":"ambos","id":"c142"},{"l":"Reactivar línea - Hogar","o":["Postventa · Suspensiones y reactivaciones · fila 70"],"p":"ambos","id":"c143"},{"l":"No suspensión","o":["Postventa · Suspensiones y reactivaciones · fila 71"],"p":"PE","id":"c144"},{"l":"Cambio de domicilio","o":["Postventa · Traslados · fila 76"],"p":"ambos","lp":"Cambio de domicilio - FTTH","id":"c145"},{"l":"Cambio de domicilio outdoor(externo)","o":["Postventa · Traslados · fila 77"],"p":"PE","id":"c146"},{"l":"Reubicación de equipo (interno)","o":["Postventa · Traslados · fila 78"],"p":"PE","id":"c147"},{"l":"Cambio de domicilio / Regularización dirección cliente","o":["Postventa · Traslados · fila 79"],"p":"CL","id":"c148"},{"l":"Reubicación de equipo","o":["Postventa · Traslados · fila 80"],"p":"CL","id":"c149"},{"l":"Reagendamiento por venta nueva o que no se ha instalado","o":["Postventa · Traslados · fila 81"],"p":"CL","id":"c150"},{"l":"Reagendamiento por traslado externo","o":["Postventa · Traslados · fila 82"],"p":"CL","id":"c151"},{"l":"Cambio de contrato Hogar/Móvil","o":["Postventa · Cambio de contrato · fila 86"],"p":"CL","id":"c152"},{"l":"Canales adicionales","o":["Postventa · Adicionales · fila 90"],"p":"CL","id":"c153"},{"l":"Gestionar equipos adicionales / Agregar equipos","o":["Postventa · Adicionales · fila 91"],"p":"CL","id":"c154"},{"l":"Gestionar equipos adicionales / Quitar equipos","o":["Postventa · Adicionales · fila 92"],"p":"CL","id":"c155"},{"l":"VAS + VAS Premium","o":["Postventa · Servicios VAS · fila 94"],"p":"ambos","id":"c156"},{"l":"Restricciones VAS Hogar","o":["Postventa · Servicios VAS · fila 95"],"p":"ambos","id":"c157"},{"l":"Restricciones VAS Inalámbrico Móvil","o":["Postventa · Servicios VAS · fila 96"],"p":"ambos","id":"c158"},{"l":"Agendamiento Hogar","o":["Postventa · Agendamientos · fila 100"],"p":"CL","id":"c159"},{"l":"Reagendamiento Hogar","o":["Postventa · Agendamientos · fila 101"],"p":"CL","id":"c160"},{"l":"Llamada futura","o":["Postventa · Agendamientos · fila 102","Postventa · Otras acciones · fila 106"],"p":"CL","id":"c161"},{"l":"Creación de cliente","o":["Gestión · Gestión y edición · fila 6"],"p":"ambos","id":"c162"},{"l":"Editar contacto","o":["Gestión · Gestión y edición · fila 7"],"p":"ambos","id":"c163"},{"l":"Editar / Crear nueva dirección","o":["Gestión · Gestión y edición · fila 8"],"p":"ambos","id":"c164"},{"l":"Búsqueda de cliente / Ingreso V360","o":["Gestión · Gestión y edición · fila 9"],"p":"ambos","id":"c165"},{"l":"Regularización de cliente Anónimo","o":["Gestión · Gestión y edición · fila 10"],"p":"CL","id":"c166"},{"l":"Preferencia de notificaciones y contacto","o":["Gestión · Gestión y edición · fila 11"],"p":"CL","id":"c167"},{"l":"RUC / Edición + Eliminación","o":["Gestión · Gestión y edición · fila 13"],"p":"PE","id":"c168"},{"l":"Crear RUC","o":["Gestión · Gestión y edición · fila 15"],"p":"PE","id":"c169"},{"l":"Cambio de titularidad: Hogar Postpago / Prepago","o":["Gestión · Cambio de titularidad / Cesión de línea · fila 17"],"p":"ambos","id":"c170"},{"l":"Cambio de titularidad: Móvil Postpago / Prepago","o":["Gestión · Cambio de titularidad / Cesión de línea · fila 18"],"p":"ambos","id":"c171"},{"l":"Cambio de titularidad fallecido","o":["Gestión · Cambio de titularidad / Cesión de línea · fila 19"],"p":"ambos","id":"c172"},{"l":"Cambio de titularidad - Declaración Jurada","o":["Gestión · Cambio de titularidad / Cesión de línea · fila 20"],"p":"PE","id":"c173"},{"l":"Perfil de facturación: Perfil Cliente","o":["Gestión · Perfil de facturación · fila 23","Gestión · Perfil de facturación · fila 26"],"p":"ambos","id":"c174"},{"l":"Perfil de facturación: Perfil Cliente - Nuevo / Antiguo","o":["Gestión · Perfil de facturación · fila 24","Gestión · Perfil de facturación · fila 27"],"p":"ambos","id":"c175"},{"l":"Perfil de facturación: Edición y Cambios de perfil","o":["Gestión · Perfil de facturación · fila 25","Gestión · Perfil de facturación · fila 28"],"p":"ambos","id":"c176"},{"l":"Historiales Móviles/Hogar","o":["Gestión · Solicitudes e historiales · fila 30"],"p":"ambos","id":"c177"},{"l":"Solicitudes V360","o":["Gestión · Solicitudes e historiales · fila 31"],"p":"ambos","id":"c178"},{"l":"Todas las solicitudes","o":["Gestión · Solicitudes e historiales · fila 32"],"p":"ambos","id":"c179"},{"l":"Reclamos con compensación","o":["Gestión · Solicitudes e historiales · fila 33"],"p":"PE","id":"c180"},{"l":"Consulta de documentos","o":["Gestión · Consultas · fila 35"],"p":"ambos","id":"c181"},{"l":"Consulta de factibilidad suelta / Hogar","o":["Gestión · Consultas · fila 37"],"p":"CL","id":"c182"},{"l":"Consulta Tracking delivery","o":["Gestión · Consultas · fila 38"],"p":"CL","id":"c183"},{"l":"Consulta Tracking delivery + Método de entrega","o":["Gestión · Consultas · fila 39"],"p":"CL","id":"c184"},{"l":"Registro de ID de Atención: Desde solicitudes","o":["Gestión · Registro de ID de Atención · fila 44"],"p":"PE","id":"c185"},{"l":"Registro de ID de Atención: Desde ingreso OTSF","o":["Gestión · Registro de ID de Atención · fila 45"],"p":"PE","id":"c186"},{"l":"Contingencias: Notificación","o":["Gestión · Contingencias · fila 47"],"p":"CL","id":"c187"},{"l":"Contingencias: Visualización","o":["Gestión · Contingencias · fila 48"],"p":"CL","id":"c188"},{"l":"Consentimiento de datos (Fase 1)","o":["Gestión · Consentimiento de datos · fila 50"],"p":"CL","id":"c189"}]</script>
+<script id="cards-data" type="application/json">[{"l":"Vista 360","o":["Estructurales · Estrucutrales · fila 5"],"id":"k001"},{"l":"Header","o":["Estructurales · Estrucutrales · fila 6"],"id":"k002"},{"l":"Sidebar","o":["Estructurales · Estrucutrales · fila 7"],"id":"k003"},{"l":"Cambio de PDV","o":["Estructurales · Estrucutrales · fila 8"],"id":"k004"},{"l":"Información General","o":["Estructurales · Información Cliente · fila 11"],"id":"k005"},{"l":"Contacto","o":["Estructurales · Información Cliente · fila 12"],"id":"k006"},{"l":"Direcciones","o":["Estructurales · Información Cliente · fila 13"],"id":"k007"},{"l":"Perfil de facturación (sección Vista 360)","o":["Estructurales · Información Cliente · fila 14"],"id":"k008"},{"l":"Documentación","o":["Estructurales · Información Cliente · fila 15"],"id":"k009"},{"l":"Usuarios","o":["Estructurales · Información Cliente · fila 16"],"id":"k010"},{"l":"Cuenta Corriente","o":["Estructurales · Información Cliente · fila 17","Gestión · Proyectos · fila 41"],"id":"k011"},{"l":"Mapa de red","o":["Estructurales · Información Cliente · fila 18","Gestión · Proyectos · fila 42"],"id":"k012"},{"l":"Boletas vigente - total a pagar","o":["Estructurales · Boleta · fila 20"],"id":"k013"},{"l":"Oferta plan móvil","o":["Estructurales · Campañas cliente · fila 22"],"id":"k014"},{"l":"Oferta hogar","o":["Estructurales · Campañas cliente · fila 23"],"id":"k015"},{"l":"Oferta en equipos","o":["Estructurales · Campañas cliente · fila 24"],"id":"k016"},{"l":"Oferta prepago","o":["Estructurales · Campañas cliente · fila 25"],"id":"k017"},{"l":"Campaña Buyback","o":["Estructurales · Campañas cliente · fila 26"],"id":"k018"},{"l":"Assets Hogar","o":["Estructurales · Assets · fila 28"],"id":"k019"},{"l":"Assets Móvil","o":["Estructurales · Assets · fila 29"],"id":"k020"},{"l":"Assets: otros productos","o":["Estructurales · Assets · fila 30"],"id":"k021"},{"l":"Últimas solicitudes","o":["Estructurales · Generales · fila 32"],"id":"k022"},{"l":"Acciones generales - Venta","o":["Estructurales · Generales · fila 33"],"id":"k023"},{"l":"Acciones generales - Postventa","o":["Estructurales · Generales · fila 34"],"id":"k024"},{"l":"Otras acciones","o":["Estructurales · Generales · fila 35"],"id":"k025"},{"l":"Marca: Afinidad / Marca cliente","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 37"],"id":"k026"},{"l":"Marca: Afinidad / Descuento afinidad","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 38"],"id":"k027"},{"l":"Marca: Entel Visa","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 39"],"id":"k028"},{"l":"Marcas especiales","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 40"],"id":"k029"},{"l":"Marca: IVR","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 41"],"id":"k030"},{"l":"Marca: ARM / Fraude","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 42"],"id":"k031"},{"l":"Factibilidad crediticia","o":["Estructurales · Trasnversales · fila 45"],"id":"k032"},{"l":"Catálogo de planes Móviles","o":["Estructurales · Trasnversales · fila 46"],"id":"k033"},{"l":"Catálogo de Equipos y Accesorios","o":["Estructurales · Trasnversales · fila 47"],"id":"k034"},{"l":"Resumen generales","o":["Estructurales · Trasnversales · fila 49"],"id":"k035"},{"l":"Perfil de facturación (paso transversal)","o":["Estructurales · Trasnversales · fila 50"],"id":"k036"},{"l":"Delivery","o":["Estructurales · Trasnversales · fila 51"],"id":"k037"},{"l":"Validación de identidad","o":["Estructurales · Trasnversales · fila 52"],"id":"k038"},{"l":"Biometría Facial","o":["Estructurales · Trasnversales · fila 62"],"id":"k039"},{"l":"Assets Hogar y Móvil (complemento)","o":["Estructurales · Complementos · fila 65"],"id":"k040"},{"l":"Activación Postpago","o":["Ventas · Venta Móvil · fila 6"],"id":"k041"},{"l":"Activación Prepago","o":["Ventas · Venta Móvil · fila 7"],"id":"k042"},{"l":"Activación Prepago Anónimo","o":["Ventas · Venta Móvil · fila 9"],"id":"k043"},{"l":"Pago Anticipado","o":["Ventas · Venta Móvil · fila 10"],"id":"k044"},{"l":"Portabilidad Postpago - CAP","o":["Ventas · Portabilidad · fila 12"],"id":"k045"},{"l":"Portabilidad Postpago (Old version)","o":["Ventas · Portabilidad · fila 13"],"e":"Deprecado","id":"k046"},{"l":"Portabilidad Prepago - CAP","o":["Ventas · Portabilidad · fila 14"],"id":"k047"},{"l":"Buyback: Venta Canal presencial","o":["Ventas · Buyback · fila 19"],"id":"k048"},{"l":"Buyback: Anulación y cancelación (Fase 1)","o":["Ventas · Buyback · fila 20"],"id":"k049"},{"l":"Prepago - Comprar bolsa","o":["Ventas · Bolsas · fila 22"],"id":"k050"},{"l":"Postpago - Comprar bolsa","o":["Ventas · Bolsas · fila 23"],"id":"k051"},{"l":"Postpago - Bolsas Fast","o":["Ventas · Bolsas · fila 24"],"id":"k052"},{"l":"Suscripción - Bolsa Roaming","o":["Ventas · Bolsas · fila 25"],"id":"k053"},{"l":"Asociar seguro","o":["Ventas · Seguros · fila 30"],"id":"k054"},{"l":"Seguro posterior a venta","o":["Ventas · Seguros · fila 31"],"id":"k055"},{"l":"Cambio de equipo ACOC","o":["Ventas · Equipo · fila 34"],"id":"k056"},{"l":"Aceleración de cuotas","o":["Ventas · Equipo · fila 35","Postventa · Anulación, cancelación y aceleración · fila 6"],"id":"k057"},{"l":"Pie de financiamiento","o":["Ventas · Equipo · fila 36"],"e":"Mejora","id":"k058"},{"l":"Venta Hogar: Postpago - Alámbrica","o":["Ventas · Venta Hogar · fila 40"],"id":"k059"},{"l":"Venta Hogar: Postpago - Inalámbrica","o":["Ventas · Venta Hogar · fila 41"],"e":"Deprecado","id":"k060"},{"l":"Venta Hogar: Prepago - Inalámbrica","o":["Ventas · Venta Hogar · fila 42"],"e":"Deprecado","id":"k061"},{"l":"Portabilidad Hogar: Alámbrica","o":["Ventas · Portabilidad hogar · fila 47"],"id":"k062"},{"l":"Portabilidad Hogar: Postpago - Inalámbrica","o":["Ventas · Portabilidad hogar · fila 48"],"e":"Deprecar","id":"k063"},{"l":"Factibilidad Técnica con venta","o":["Ventas · Factibilidad técnica · fila 53"],"id":"k064"},{"l":"Entel TV - Base","o":["Ventas · Entel TV · fila 55"],"id":"k065"},{"l":"Entel TV + Deco","o":["Ventas · Entel TV · fila 56"],"id":"k066"},{"l":"Venta Suelta Convergente (Hogar, Móvil y Accesorios)","o":["Ventas · Catálogo · fila 59"],"id":"k067"},{"l":"Venta Suelta - Móvil","o":["Ventas · Catálogo · fila 60"],"id":"k068"},{"l":"Venta Suelta - Hogar","o":["Ventas · Catálogo · fila 61"],"id":"k069"},{"l":"Anulación Móvil","o":["Postventa · Anulación, cancelación y aceleración · fila 7"],"id":"k070"},{"l":"Cancelación Móvil","o":["Postventa · Anulación, cancelación y aceleración · fila 8"],"id":"k071"},{"l":"Anulación Hogar","o":["Postventa · Anulación, cancelación y aceleración · fila 10"],"id":"k072"},{"l":"Cancelación Hogar","o":["Postventa · Anulación, cancelación y aceleración · fila 11"],"id":"k073"},{"l":"Anulación Entel TV","o":["Postventa · Anulación, cancelación y aceleración · fila 12"],"id":"k074"},{"l":"Cancelación Entel TV","o":["Postventa · Anulación, cancelación y aceleración · fila 13"],"id":"k075"},{"l":"Bloqueo Móvil","o":["Postventa · Bloqueo y desbloqueo · fila 15"],"id":"k076"},{"l":"Desbloqueo Móvil","o":["Postventa · Bloqueo y desbloqueo · fila 16"],"id":"k077"},{"l":"Bloqueo Hogar","o":["Postventa · Bloqueo y desbloqueo · fila 17"],"id":"k078"},{"l":"Desbloqueo Hogar","o":["Postventa · Bloqueo y desbloqueo · fila 18"],"id":"k079"},{"l":"Desbloqueo + Face ID","o":["Postventa · Bloqueo y desbloqueo · fila 19"],"id":"k080"},{"l":"Cambio plan Móvil - Postpago","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 30"],"id":"k081"},{"l":"Cambio plan Móvil - Prepago","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 31"],"id":"k082"},{"l":"Cambio de Plan por Excepción/Blindaje","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 32"],"id":"k083"},{"l":"Cambio de Plan + Compra de equipo Móvil","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 33"],"id":"k084"},{"l":"Cambio de plan: Inalámbrico / downgrade-upgrade-upselling","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 34"],"id":"k085"},{"l":"Cambio de plan: Inalámbrico / upselling con portabilidad","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 35"],"id":"k086"},{"l":"Cambio de plan: Inalámbrico-Fibra (cambio de tecnología) / Hogar","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 36"],"id":"k087"},{"l":"Cambio de plan: Fibra-Inalámbrico / Hogar","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 37"],"e":"Deprecado","id":"k088"},{"l":"Cambio de plan: Fibra","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 40"],"id":"k089"},{"l":"Cambio de SIM - Móvil","o":["Postventa · Cambio de SIM, Número y Equipo · fila 42"],"id":"k090"},{"l":"Cambio de SIM - Hogar","o":["Postventa · Cambio de SIM, Número y Equipo · fila 43"],"id":"k091"},{"l":"Cambio de Número - Hogar","o":["Postventa · Cambio de SIM, Número y Equipo · fila 44"],"id":"k092"},{"l":"Cambio de Número - Móvil_Postpago","o":["Postventa · Cambio de SIM, Número y Equipo · fila 45"],"id":"k093"},{"l":"Cambio de Número - Móvil_Prepago","o":["Postventa · Cambio de SIM, Número y Equipo · fila 46"],"id":"k094"},{"l":"Cambio de Equipo - Móvil","o":["Postventa · Cambio de SIM, Número y Equipo · fila 47"],"id":"k095"},{"l":"Renuncia Prepago Móvil","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 49"],"id":"k096"},{"l":"Renuncia/Migración Móvil","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 50"],"id":"k097"},{"l":"Renuncia con desinstalación Hogar","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 52"],"id":"k098"},{"l":"Renuncia Full Hogar ALA","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 55"],"id":"k099"},{"l":"Renuncia con Downselling Hogar ALA","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 56"],"id":"k100"},{"l":"Renuncia outdoor Hogar INA","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 57"],"id":"k101"},{"l":"Migración PP a PS + equipo","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 58"],"id":"k102"},{"l":"Migración Full - Inalámbrico / Hogar","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 59"],"id":"k103"},{"l":"Susp. Temporal - Móvil","o":["Postventa · Suspensiones y reactivaciones · fila 65"],"id":"k104"},{"l":"Susp. Temporal - Hogar","o":["Postventa · Suspensiones y reactivaciones · fila 66"],"id":"k105"},{"l":"Reactivar línea - Móvil","o":["Postventa · Suspensiones y reactivaciones · fila 69"],"id":"k106"},{"l":"Reactivar línea - Hogar","o":["Postventa · Suspensiones y reactivaciones · fila 70"],"id":"k107"},{"l":"Cambio de domicilio","o":["Postventa · Hogar · fila 76"],"id":"k108"},{"l":"Cambio de domicilio / Regularización dirección cliente","o":["Postventa · Hogar · fila 79"],"id":"k109"},{"l":"Reubicación de equipo","o":["Postventa · Hogar · fila 80"],"id":"k110"},{"l":"Reagendamiento por venta nueva o que no se ha instalado","o":["Postventa · Hogar · fila 81"],"id":"k111"},{"l":"Reagendamiento por traslado externo","o":["Postventa · Hogar · fila 82"],"id":"k112"},{"l":"Cambio de contrato Hogar/Móvil","o":["Postventa · Cambio de contrato · fila 86"],"id":"k113"},{"l":"Canales adicionales","o":["Postventa · Adicionales · fila 90"],"id":"k114"},{"l":"Gestionar equipos adicionales / Agregar equipos","o":["Postventa · Adicionales · fila 91"],"id":"k115"},{"l":"Gestionar equipos adicionales / Quitar equipos","o":["Postventa · Adicionales · fila 92"],"id":"k116"},{"l":"VAS + VAS Premium","o":["Postventa · Servicios VAS · fila 94"],"id":"k117"},{"l":"Restricciones VAS Hogar","o":["Postventa · Servicios VAS · fila 95"],"id":"k118"},{"l":"Restricciones VAS Inalámbrico Móvil","o":["Postventa · Servicios VAS · fila 96"],"id":"k119"},{"l":"Agendamiento Hogar","o":["Postventa · Hogar · fila 100"],"id":"k120"},{"l":"Reagendamiento Hogar","o":["Postventa · Hogar · fila 101"],"id":"k121"},{"l":"Llamada futura","o":["Postventa · Hogar · fila 102","Postventa · Otras acciones · fila 106"],"id":"k122"},{"l":"Creación de cliente","o":["Gestión · Gestión y edición · fila 6"],"id":"k123"},{"l":"Editar contacto","o":["Gestión · Gestión y edición · fila 7"],"id":"k124"},{"l":"Editar / Crear nueva dirección","o":["Gestión · Gestión y edición · fila 8"],"id":"k125"},{"l":"Búsqueda de cliente / Ingreso V360","o":["Gestión · Gestión y edición · fila 9"],"id":"k126"},{"l":"Regularización de cliente Anónimo","o":["Gestión · Gestión y edición · fila 10"],"id":"k127"},{"l":"Preferencia de notificaciones y contacto","o":["Gestión · Gestión y edición · fila 11"],"id":"k128"},{"l":"Cambio de titularidad: Hogar Postpago / Prepago","o":["Gestión · Cambio de titularidad / Cesión de línea · fila 17"],"id":"k129"},{"l":"Cambio de titularidad: Móvil Postpago / Prepago","o":["Gestión · Cambio de titularidad / Cesión de línea · fila 18"],"id":"k130"},{"l":"Cambio de titularidad fallecido","o":["Gestión · Cambio de titularidad / Cesión de línea · fila 19"],"id":"k131"},{"l":"Perfil de facturación: Perfil Cliente","o":["Gestión · Perfil de facturación · fila 23"],"id":"k132"},{"l":"Perfil de facturación: Perfil Cliente - Nuevo / Antiguo","o":["Gestión · Perfil de facturación · fila 24"],"id":"k133"},{"l":"Perfil de facturación: Edición y Cambios de perfil","o":["Gestión · Perfil de facturación · fila 25"],"id":"k134"},{"l":"Historiales Móviles/Hogar","o":["Gestión · Solicitudes e historiales · fila 30"],"e":"Estructural","id":"k135"},{"l":"Solicitudes V360","o":["Gestión · Solicitudes e historiales · fila 31"],"e":"Estructural","id":"k136"},{"l":"Todas las solicitudes","o":["Gestión · Solicitudes e historiales · fila 32"],"e":"Estructural","id":"k137"},{"l":"Consulta de documentos","o":["Gestión · Consultas · fila 35"],"e":"Estructural","id":"k138"},{"l":"Consulta de portabilidad","o":["Gestión · Consultas · fila 36"],"id":"k139"},{"l":"Consulta de factibilidad suelta / Hogar","o":["Gestión · Consultas · fila 37"],"id":"k140"},{"l":"Consulta Tracking delivery","o":["Gestión · Consultas · fila 38"],"e":"Estructural","id":"k141"},{"l":"Consulta Tracking delivery + Método de entrega","o":["Gestión · Consultas · fila 39"],"id":"k142"},{"l":"Contingencias: Notificación","o":["Gestión · Contingencias · fila 47"],"id":"k143"},{"l":"Contingencias: Visualización","o":["Gestión · Contingencias · fila 48"],"id":"k144"},{"l":"Consentimiento de datos (Fase 1)","o":["Gestión · Consentimiento de datos · fila 50"],"e":"Estructural","id":"k145"}]</script>
 <script>
 "use strict";
 const SB_URL="https://jdqagvkvxbzlfayuyzbw.supabase.co",SB_KEY="sb_publishable_RlS6hqg_b8zY1mswYhgr2g_lXdyMnJb";
 const CARDS=JSON.parse(document.getElementById("cards-data").textContent);
 const BY_ID=Object.fromEntries(CARDS.map(c=>[c.id,c]));
-const UNKNOWN="__no_conozco__",LS="csot:v1";
+const UNKNOWN="__no_conozco__",DEPRE="__deprecadas__",LS="csot:v2";
+const FIXED={[DEPRE]:"Deprecadas/Apagadas",[UNKNOWN]:"No conozco este concepto"};
+const BASE=[["venta","Venta"],["postventa","Post Venta"],["consulta","Consulta"],["transversales","Transversales/Estructurales"]];
+const BASE_NAME=Object.fromEntries(BASE);
 const app=document.getElementById("app"),dlg=document.getElementById("dlg");
 
 /* utilidades. Todo texto de usuario entra por textContent. */
@@ -188,79 +206,84 @@ async function rpc(fn,body){
 }
 function uuid(){return crypto.randomUUID?crypto.randomUUID():"10000000-1000-4000-8000-100000000000".replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16))}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const isFixed=n=>n===UNKNOWN||n===DEPRE;
 function norm(s){return String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/\s+/g," ").trim()}
 function pct(x){return Math.round(x*100)+"%"}
 function median(a){if(!a.length)return 0;const s=a.slice().sort((x,y)=>x-y),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2}
 
 /* ---------- Participante ---------- */
 let S=null,undoStack=[],selected=new Set(),query="",saveState="idle",saveTimer=null,saving=false,dirty=false,lastTick=Date.now();
-const label=id=>{const c=BY_ID[id];return S&&S.perfil.pais==="Perú"&&c.lp?c.lp:c.l};
-function placed(){const p=new Set(S.unknown);S.piles.forEach(g=>g.cards.forEach(c=>p.add(c)));return p}
+const nueva=id=>S.nuevas.find(c=>c.id===id);
+const label=id=>BY_ID[id]?BY_ID[id].l:(nueva(id)||{}).n||"";
 function persist(){store.set(S)}
-function snapshot(){undoStack.push(JSON.stringify({piles:S.piles,unknown:S.unknown,deck:S.deck}));if(undoStack.length>30)undoStack.shift()}
+function snapshot(){undoStack.push(JSON.stringify({piles:S.piles,unknown:S.unknown,depre:S.depre,deck:S.deck,nuevas:S.nuevas}));if(undoStack.length>30)undoStack.shift()}
 function changed(){persist();dirty=true;scheduleSave()}
 function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(pushSave,3000)}
 function payload(done,comentario){
-  return{p_id:S.id,p_pais:S.perfil.pais,p_canal:S.perfil.canal,p_antiguedad:S.perfil.antiguedad,
-    p_grupos:[{n:UNKNOWN,c:S.unknown},...S.piles.map(g=>({n:g.name,c:g.cards}))],
-    p_sin_ordenar:S.deck.length,p_comentario:comentario||"",p_segundos:Math.round(S.seconds),p_completado:!!done};
+  return{p_id:S.id,p_nombre:S.nombre,
+    p_grupos:[{n:UNKNOWN,c:S.unknown},{n:DEPRE,c:S.depre},...S.piles.map(g=>({n:g.name,c:g.cards,k:g.base||null}))],
+    p_nuevas:S.nuevas,p_sin_ordenar:S.deck.length,p_comentario:comentario||"",p_segundos:Math.round(S.seconds),p_completado:!!done};
 }
 async function pushSave(){
   if(saving||!dirty)return;
   saving=true;dirty=false;setSaved("saving");
-  try{await rpc("guardar_respuesta",payload(false));setSaved("ok")}
+  try{await rpc("guardar_respuesta_v2",payload(false));setSaved("ok")}
   catch{dirty=true;setSaved("bad");clearTimeout(saveTimer);saveTimer=setTimeout(pushSave,15000)}
   saving=false;if(dirty&&saveState!=="bad")scheduleSave();
 }
 function setSaved(s){saveState=s;const e=document.getElementById("saved");if(e){e.textContent=s==="bad"?"Sin conexión: tu avance sigue en este equipo":s==="saving"?"Guardando…":s==="ok"?"Avance guardado":"";e.className="saved"+(s==="bad"?" bad":"")}}
 setInterval(()=>{const n=Date.now();if(S&&!S.done&&document.visibilityState==="visible"&&n-lastTick<30000)S.seconds+=(n-lastTick)/1000;lastTick=n},5000);
-window.addEventListener("pagehide",()=>{if(S&&!S.done){persist();if(dirty){try{fetch(SB_URL+"/rest/v1/rpc/guardar_respuesta",{method:"POST",keepalive:true,headers:{apikey:SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(payload(false))})}catch{}}}});
+window.addEventListener("pagehide",()=>{if(S&&!S.done){persist();if(dirty){try{fetch(SB_URL+"/rest/v1/rpc/guardar_respuesta_v2",{method:"POST",keepalive:true,headers:{apikey:SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(payload(false))})}catch{}}}});
 
-function viewIntro(prefill){
+function newState(nombre){return{id:uuid(),nombre,deck:shuffle(CARDS.map(c=>c.id)),piles:BASE.map(([k,n])=>({id:k,base:k,name:n,cards:[]})),unknown:[],depre:[],nuevas:[],seconds:0,done:false}}
+function viewIntro(){
+  const inp=h("input",{type:"text",id:"nombre",maxLength:80,required:true,autocomplete:"name"});
   const form=h("form",{class:"panel",onsubmit(e){e.preventDefault();
-    const fd=new FormData(form);
-    S={id:uuid(),perfil:{pais:fd.get("pais"),canal:fd.get("canal"),antiguedad:fd.get("antiguedad")},deck:shuffle(CARDS.map(c=>c.id)),piles:[],unknown:[],seconds:0,done:false};
-    persist();dirty=true;pushSave();viewBoard();
+    const nombre=inp.value.trim();if(!nombre){inp.focus();return}
+    S=newState(nombre);persist();dirty=true;pushSave();viewBoard();
   }},
-    h("div",{class:"fan","aria-hidden":"true"},h("span",{},"Cambio de plan"),h("span",{},"Recarga"),h("span",{},"Agendamiento")),
+    h("div",{class:"fan","aria-hidden":"true"},h("span",{},"Cambio de plan"),h("span",{},"Agendamiento Hogar"),h("span",{},"Delivery")),
     h("h2",{},"Antes de empezar"),
-    field("pais","¿En qué país trabajas?",[["","Elige una opción"],["Chile","Chile"],["Perú","Perú"],["Otro","Otro"]]),
-    field("canal","¿Dónde trabajas?",[["","Elige una opción"],["Call Center","Call Center"],["Tienda","Tienda"],["Otro","Otro"]]),
-    field("antiguedad","¿Hace cuánto usas One Touch?",[["","Elige una opción"],["Menos de 6 meses","Menos de 6 meses"],["6 a 12 meses","6 a 12 meses"],["1 a 3 años","1 a 3 años"],["Más de 3 años","Más de 3 años"],["No uso One Touch","No uso One Touch"]]),
-    h("button",{class:"btn primary",type:"submit"},"Empezar a ordenar")
-  );
+    h("div",{class:"field"},h("label",{htmlFor:"nombre"},"Tu nombre"),inp,h("p",{class:"muted",style:"font-size:.88rem"},"Lo usaremos solo para consultarte si tenemos dudas sobre tus respuestas.")),
+    h("button",{class:"btn primary",type:"submit"},"Empezar a ordenar"));
   app.replaceChildren(h("div",{class:"intro"},
     h("div",{class:"intro-copy"},
       h("h1",{},"Ayúdanos a ordenar One Touch"),
-      h("p",{},`Tienes ${CARDS.length} tarjetas con funciones y conceptos de la plataforma. Agrúpalas como tenga sentido para ti y pon un nombre a cada grupo. No hay respuestas correctas ni incorrectas.`),
+      h("p",{},`Tienes ${CARDS.length} tarjetas con funciones y conceptos de la plataforma en Chile. Agrúpalas como tenga sentido para ti. No hay respuestas correctas ni incorrectas.`),
       h("ol",{class:"how"},
-        h("li",{},h("b",{},"1"),h("span",{},"Toca una o varias tarjetas y luego toca una categoría, o usa el botón Mover a. En computador también puedes arrastrarlas.")),
-        h("li",{},h("b",{},"2"),h("span",{},"Crea las categorías que necesites y nómbralas con tus palabras.")),
-        h("li",{},h("b",{},"3"),h("span",{},"Si no conoces una tarjeta, déjala en “No conozco este concepto”."))),
-      h("p",{class:"muted"},"Calcula entre 45 y 60 minutos. Tu avance se guarda solo, así que puedes pausar y volver desde este mismo equipo. No te pedimos tu nombre.")),
+        h("li",{},h("b",{},"1"),h("span",{},"Toca una o varias tarjetas y luego Mover aquí en la categoría. En computador también puedes arrastrarlas.")),
+        h("li",{},h("b",{},"2"),h("span",{},"Partes con Venta, Post Venta, Consulta y Transversales/Estructurales. Puedes cambiarles el nombre y crear otras categorías.")),
+        h("li",{},h("b",{},"3"),h("span",{},"Usa Deprecadas/Apagadas para lo que ya no se usa y No conozco este concepto para lo que no reconoces.")),
+        h("li",{},h("b",{},"4"),h("span",{},"Si falta algo, crea una tarjeta nueva con una breve descripción."))),
+      h("p",{class:"muted"},"Calcula entre 30 y 45 minutos. Tu avance se guarda solo, así que puedes pausar y volver desde este mismo equipo.")),
     form));
 }
-function field(name,lab,opts){return h("div",{class:"field"},h("label",{htmlFor:name},lab),h("select",{id:name,name,required:true},opts.map(([v,t])=>h("option",{value:v},t))))}
 
 function cardEl(id,from){
-  return h("button",{class:"tcard",type:"button","data-id":id,"data-from":from,"aria-pressed":String(selected.has(id)),onclick(e){if(dragJustEnded)return;toggle(id,e)},onpointerdown:dragStart},label(id));
+  const n=BY_ID[id]?null:nueva(id);
+  const btn=h("button",{class:"tcard"+(n?" mod":""),type:"button","data-id":id,"data-from":from,"aria-pressed":String(selected.has(id)),onclick(e){if(dragJustEnded)return;toggle(id,e)},onpointerdown:dragStart},
+    label(id),n?h("small",{},n.d):null);
+  if(!n)return btn;
+  return h("div",{class:"cardwrap"},btn,h("button",{class:"edit",type:"button","aria-label":"Editar tarjeta "+n.n,title:"Editar tarjeta",onclick(){openCard(n)}},"✎"));
 }
 function toggle(id){selected.has(id)?selected.delete(id):selected.add(id);render()}
+function takeOut(set){S.deck=S.deck.filter(c=>!set.has(c));S.unknown=S.unknown.filter(c=>!set.has(c));S.depre=S.depre.filter(c=>!set.has(c));S.piles.forEach(g=>g.cards=g.cards.filter(c=>!set.has(c)))}
 function move(ids,target){
-  /* target: "deck" | UNKNOWN | pile id */
+  /* target: "deck" | UNKNOWN | DEPRE | id de categoría */
   snapshot();
   const set=new Set(ids);
-  S.deck=S.deck.filter(c=>!set.has(c));S.unknown=S.unknown.filter(c=>!set.has(c));S.piles.forEach(g=>g.cards=g.cards.filter(c=>!set.has(c)));
+  takeOut(set);
   if(target==="deck")S.deck.unshift(...ids);
   else if(target===UNKNOWN)S.unknown.push(...ids);
+  else if(target===DEPRE)S.depre.push(...ids);
   else S.piles.find(g=>g.id===target).cards.push(...ids);
   selected.clear();changed();render();
 }
 function newPile(ids,focus=true){
   snapshot();
   const g={id:"g"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:"",cards:[]};
+  if(ids&&ids.length){takeOut(new Set(ids));g.cards.push(...ids)}
   S.piles.push(g);
-  if(ids&&ids.length){const set=new Set(ids);S.deck=S.deck.filter(c=>!set.has(c));S.unknown=S.unknown.filter(c=>!set.has(c));S.piles.forEach(p=>{if(p!==g)p.cards=p.cards.filter(c=>!set.has(c))});g.cards.push(...ids)}
   selected.clear();changed();render();
   if(focus){const i=document.getElementById("name-"+g.id);if(i){i.focus();i.scrollIntoView({block:"nearest"})}}
   return g;
@@ -281,6 +304,7 @@ function viewBoard(){
       h("section",{class:"deck","aria-label":"Tarjetas por ordenar","data-drop":"deck"},
         h("h2",{style:"font-size:1.05rem"},"Por ordenar"),
         h("input",{type:"search",id:"search",placeholder:"Buscar tarjeta","aria-label":"Buscar tarjeta",value:query,oninput(e){query=e.target.value;renderDeck()}}),
+        h("div",{class:"deck-tools"},h("button",{class:"btn small",type:"button",id:"newcard",onclick(){openCard()}},"+ Nueva tarjeta")),
         h("div",{class:"deck-list",id:"decklist"})),
       h("section",{class:"board","aria-label":"Categorías",id:"board"})),
     h("div",{class:"actionbar",id:"actionbar",hidden:true}));
@@ -301,17 +325,27 @@ function render(){
   renderDeck();
   const active=document.activeElement&&document.activeElement.id;
   const pos=active&&active.startsWith("name-")?document.activeElement.selectionStart:null;
-  const piles=S.piles.map(g=>h("article",{class:"pile","data-drop":g.id,onclick(e){pileClick(e,g.id)}},
-    h("div",{class:"pile-head"},
-      h("input",{type:"text",id:"name-"+g.id,maxLength:60,placeholder:"Nombra esta categoría","aria-label":"Nombre de la categoría",value:g.name,oninput(e){g.name=e.target.value;changed();refreshFinish()}}),
-      h("span",{class:"count mono"},g.cards.length),
-      h("button",{class:"icon",type:"button","aria-label":"Eliminar categoría y devolver sus tarjetas",title:"Eliminar categoría",onclick(){deletePile(g)}},"✕")),
-    h("div",{class:"pile-cards"},g.cards.map(id=>cardEl(id,g.id))),
-    !g.cards.length?h("p",{class:"drop-hint"},selected.size?"Toca aquí para mover las seleccionadas":"Mueve tarjetas aquí"):null));
+  const piles=S.piles.map(g=>{
+    const isBase=!!g.base,renamed=isBase&&g.name.trim()!==BASE_NAME[g.base],mod=!isBase||renamed;
+    const tag=h("span",{class:"tag",id:"tag-"+g.id,hidden:!mod},isBase?"Editada":"Nueva");
+    const art=h("article",{class:"pile"+(mod?" mod":""),"data-drop":g.id,onclick(e){pileClick(e,g.id)}},
+      h("div",{class:"pile-head"},
+        h("input",{type:"text",id:"name-"+g.id,maxLength:60,placeholder:"Nombra esta categoría","aria-label":"Nombre de la categoría",value:g.name,oninput(e){g.name=e.target.value;changed();refreshFinish();
+          if(isBase){const m=g.name.trim()!==BASE_NAME[g.base];art.classList.toggle("mod",m);tag.hidden=!m}}}),
+        tag,h("span",{class:"count mono"},g.cards.length),
+        isBase?null:h("button",{class:"icon",type:"button","aria-label":"Eliminar categoría y devolver sus tarjetas",title:"Eliminar categoría",onclick(){deletePile(g)}},"✕")),
+      selected.size?moveHere(g.id):null,
+      h("div",{class:"pile-cards"},g.cards.map(id=>cardEl(id,g.id))),
+      !g.cards.length&&!selected.size?h("p",{class:"drop-hint"},"Mueve tarjetas aquí"):null);
+    return art});
+  const fixedPile=(key,list)=>h("article",{class:"unknown","data-drop":key,onclick(e){pileClick(e,key)}},
+    h("div",{class:"pile-head"},h("h3",{style:"margin-right:auto"},FIXED[key]),h("span",{class:"fixed-tag"},"Nombre fijo"),h("span",{class:"count mono"},list.length)),
+    selected.size?moveHere(key):null,
+    h("div",{class:"pile-cards"},list.map(id=>cardEl(id,key))),
+    !list.length&&!selected.size?h("p",{class:"drop-hint"},"Mueve tarjetas aquí"):null);
   document.getElementById("board").replaceChildren(
-    h("article",{class:"unknown","data-drop":UNKNOWN,onclick(e){pileClick(e,UNKNOWN)}},
-      h("div",{class:"pile-head"},h("h3",{style:"margin-right:auto"},"No conozco este concepto"),h("span",{class:"count mono"},S.unknown.length)),
-      h("div",{class:"pile-cards"},S.unknown.map(id=>cardEl(id,UNKNOWN)))),
+    h("div",{class:"fixed-row"},fixedPile(DEPRE,S.depre),fixedPile(UNKNOWN,S.unknown)),
+    h("p",{class:"legend"},h("span",{class:"tag"},"Morado"),"Categorías y tarjetas que creaste o cambiaste."),
     h("div",{class:"piles"},piles,h("button",{class:"newpile",type:"button","data-drop":"new",onclick(){newPile(selected.size?[...selected]:null)}},"+ Nueva categoría")));
   if(active&&active.startsWith("name-")){const i=document.getElementById(active);if(i){i.focus();if(pos!=null)i.setSelectionRange(pos,pos)}}
   const bar=document.getElementById("actionbar");
@@ -322,12 +356,12 @@ function render(){
     h("button",{class:"btn small",type:"button",onclick(){selected.clear();render()}},"Quitar selección"));
   refreshFinish();
 }
+const moveHere=id=>h("button",{class:"btn small primary",type:"button","data-move":id,onclick(){move([...selected],id)}},"Mover aquí");
 function pileClick(e,id){if(selected.size&&!e.target.closest("button,input"))move([...selected],id)}
 function finishProblem(){
   if(S.deck.length)return`Faltan ${S.deck.length} tarjetas por ordenar.`;
-  if(S.piles.length<2)return"Crea al menos dos categorías.";
   if(S.piles.some(g=>!g.name.trim()))return"Falta nombrar una categoría.";
-  if(S.piles.some(g=>!g.cards.length))return"Hay una categoría vacía. Elimínala o mueve tarjetas a ella.";
+  if(S.piles.some(g=>!g.base&&!g.cards.length))return"Hay una categoría nueva vacía. Elimínala o mueve tarjetas a ella.";
   return"";
 }
 function refreshFinish(){const b=document.getElementById("finish");if(b)b.title=finishProblem()}
@@ -338,11 +372,34 @@ function openMove(){
     h("h2",{},"Mover "+(ids.length===1?"1 tarjeta":ids.length+" tarjetas")),
     h("div",{class:"movelist"},
       S.piles.map(g=>h("button",{class:"btn",type:"button",onclick(){dlg.close();move(ids,g.id)}},(g.name||"Categoría sin nombre")+" ("+g.cards.length+")")),
-      h("button",{class:"btn",type:"button",onclick(){dlg.close();move(ids,UNKNOWN)}},"No conozco este concepto"),
+      h("button",{class:"btn",type:"button",onclick(){dlg.close();move(ids,DEPRE)}},FIXED[DEPRE]),
+      h("button",{class:"btn",type:"button",onclick(){dlg.close();move(ids,UNKNOWN)}},FIXED[UNKNOWN]),
       h("button",{class:"btn",type:"button",onclick(){dlg.close();move(ids,"deck")}},"Devolver a Por ordenar")),
     h("div",{class:"row"},h("div",{style:"flex:1;min-width:180px"},input),h("button",{class:"btn primary",type:"button",onclick(){const n=input.value.trim();dlg.close();const g=newPile(ids,!n);if(n){g.name=n;changed();render()}}},"Crear")),
     h("div",{class:"row end"},h("button",{class:"btn",type:"button",onclick(){dlg.close()}},"Cancelar"))));
   dlg.showModal();
+}
+function openCard(card){
+  const editing=!!card;
+  const name=h("input",{type:"text",id:"card-name",maxLength:70,required:true,value:card?card.n:""});
+  const desc=h("textarea",{id:"card-desc",maxLength:240,required:true,value:card?card.d:"",placeholder:"¿Qué es y para qué sirve?"});
+  const form=h("form",{class:"dlg",onsubmit(e){e.preventDefault();
+    const n=name.value.trim(),d=desc.value.trim();if(!n||!d)return;
+    snapshot();
+    if(editing){const c=nueva(card.id);c.n=n;c.d=d}
+    else{const id="n"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);S.nuevas.push({id,n,d});S.deck.unshift(id)}
+    query="";const si=document.getElementById("search");if(si)si.value="";
+    dlg.close();changed();render();
+  }},
+    h("h2",{},editing?"Editar tarjeta":"Nueva tarjeta"),
+    h("p",{class:"muted"},"Agrega un concepto que falte en la lista o que sea nuevo."),
+    h("div",{class:"field"},h("label",{htmlFor:"card-name"},"Nombre"),name),
+    h("div",{class:"field"},h("label",{htmlFor:"card-desc"},"Breve descripción"),desc),
+    h("div",{class:"row end"},
+      editing?h("button",{class:"btn danger",type:"button",style:"margin-right:auto",onclick(){snapshot();const set=new Set([card.id]);takeOut(set);S.nuevas=S.nuevas.filter(c=>c.id!==card.id);selected.delete(card.id);dlg.close();changed();render()}},"Eliminar tarjeta"):null,
+      h("button",{class:"btn",type:"button",onclick(){dlg.close()}},"Cancelar"),
+      h("button",{class:"btn primary",type:"submit"},editing?"Guardar":"Crear tarjeta")));
+  dlg.replaceChildren(form);dlg.showModal();name.focus();
 }
 function openResume(){
   const url=location.href.split("#")[0]+"#s-"+S.id;
@@ -362,11 +419,11 @@ function openFinish(){
   const err=h("p",{class:"err",hidden:true,role:"alert"});
   const send=h("button",{class:"btn primary",type:"button",async onclick(){
     send.disabled=true;send.textContent="Enviando…";err.hidden=true;
-    try{clearTimeout(saveTimer);await rpc("guardar_respuesta",payload(true,ta.value.trim()));S.done=true;persist();dlg.close();viewDone()}
+    try{clearTimeout(saveTimer);await rpc("guardar_respuesta_v2",payload(true,ta.value.trim()));S.done=true;persist();dlg.close();viewDone()}
     catch{err.textContent="No pudimos enviar tus respuestas. Revisa tu conexión e inténtalo de nuevo; nada se perdió.";err.hidden=false;send.disabled=false;send.textContent="Enviar respuestas"}
   }},"Enviar respuestas");
   dlg.replaceChildren(h("div",{class:"dlg"},h("h2",{},"Enviar tus respuestas"),
-    h("p",{},`Creaste ${S.piles.length} categorías y marcaste ${S.unknown.length} tarjetas como desconocidas. Después de enviar ya no podrás cambiarlas.`),
+    h("p",{},`Tienes ${S.piles.length} categorías, ${S.depre.length} tarjetas en Deprecadas/Apagadas, ${S.unknown.length} en No conozco este concepto y ${S.nuevas.length===1?"1 tarjeta nueva":S.nuevas.length+" tarjetas nuevas"}. Después de enviar ya no podrás cambiarlas.`),
     h("div",{class:"field"},h("label",{htmlFor:"comentario"},"Comentario (opcional)"),ta),err,
     h("div",{class:"row end"},h("button",{class:"btn",type:"button",onclick(){dlg.close()}},"Seguir revisando"),send)));
   dlg.showModal();
@@ -411,7 +468,7 @@ function dragEnd(){
 }
 
 /* ---------- Resultados ---------- */
-const R={rows:[],key:"",pais:"",canal:"",parciales:false,tab:"grupos",cut:.5,data:null,del:null};
+const R={rows:[],key:"",persona:"",parciales:false,tab:"grupos",cut:.5,data:null,del:null};
 function viewLock(msg){
   const inp=h("input",{type:"password",id:"clave",autocomplete:"off",required:true});
   const form=h("form",{class:"panel",onsubmit(e){e.preventDefault();loadResults(inp.value.trim(),form)}},
@@ -426,18 +483,19 @@ async function loadResults(key,form){
   try{const rows=await rpc("resultados",{p_clave:key});R.rows=rows||[];R.key=key;try{sessionStorage.setItem("csot:k",key)}catch{}R.data=null;viewResults()}
   catch(e){viewLock(e.status&&e.status<500?"La clave no es correcta.":"No pudimos conectar. Inténtalo de nuevo.")}
 }
-function filtered(){return R.rows.filter(r=>(R.parciales||r.completado)&&(!R.pais||r.pais===R.pais)&&(!R.canal||r.canal===R.canal))}
+function filtered(){return R.rows.filter(r=>(R.parciales||r.completado)&&(!R.persona||r.id===R.persona))}
 function analyze(rows){
   const n=CARDS.length,idx=Object.fromEntries(CARDS.map((c,i)=>[c.id,i]));
-  const tog=new Float64Array(n*n),both=new Float64Array(n*n),unk=new Float64Array(n),seen=new Float64Array(n);
+  const tog=new Float64Array(n*n),both=new Float64Array(n*n),unk=new Float64Array(n),dep=new Float64Array(n),seen=new Float64Array(n);
   const cats=new Map(),perCard=CARDS.map(()=>new Map());
   for(const r of rows){
     const gs=(r.grupos||[]);const placed=[];
     for(const g of gs){
       const ids=(g.c||[]).map(c=>idx[c]).filter(i=>i!=null);
       if(g.n===UNKNOWN){ids.forEach(i=>{unk[i]++;seen[i]++});continue}
+      if(g.n===DEPRE){ids.forEach(i=>{dep[i]++;seen[i]++});continue}
       const name=norm(g.n)||"(sin nombre)";
-      if(!cats.has(name))cats.set(name,{name:g.n||"(sin nombre)",people:0,cards:new Map()});
+      if(!cats.has(name))cats.set(name,{name:g.n||"(sin nombre)",people:0,cards:new Map(),base:g.k?BASE_NAME[g.k]:""});
       const ct=cats.get(name);ct.people++;
       for(const i of ids){seen[i]++;ct.cards.set(i,(ct.cards.get(i)||0)+1);const m=perCard[i];const e=m.get(name)||{name:g.n,count:0};e.count++;m.set(name,e)}
       for(let a=0;a<ids.length;a++)for(let b=a+1;b<ids.length;b++){tog[ids[a]*n+ids[b]]++;tog[ids[b]*n+ids[a]]++}
@@ -458,7 +516,7 @@ function analyze(rows){
     size[i]+=size[j];alive.splice(y,1);
   }
   const order=[];(function walk(t){const st=[t];while(st.length){const c=st.pop();if(c.leaf!=null)order.push(c.leaf);else{st.push(c.r);st.push(c.l)}}})(node[alive[0]]);
-  return{n,sim,both,unk,seen,cats,perCard,merges,order};
+  return{n,sim,both,unk,dep,seen,cats,perCard,merges,order};
 }
 function cutClusters(d,t){
   const p=Array.from({length:d.n},(_,i)=>i),find=x=>{while(p[x]!==x)x=p[x]=p[p[x]];return x};
@@ -469,29 +527,29 @@ function cutClusters(d,t){
 function viewResults(){
   const rows=filtered();R.data=rows.length?analyze(rows):null;
   const all=R.rows,comp=all.filter(r=>r.completado);
-  const canales=[...new Set(all.map(r=>r.canal))].sort();
   const stats=h("div",{class:"stats"},
     stat(comp.length,"respuestas completas"),stat(all.length-comp.length,"en curso"),
     stat(rows.length?Math.round(median(rows.map(r=>r.segundos))/60)+" min":"–","mediana de tiempo"),
-    stat(rows.length?median(rows.map(r=>(r.grupos||[]).filter(g=>g.n!==UNKNOWN).length)):"–","mediana de categorías"));
+    stat(rows.length?median(rows.map(r=>catCount(r))):"–","mediana de categorías"));
   const filters=h("div",{class:"filters"},
-    selectF("f-pais","País",[["","Todos"],["Chile","Chile"],["Perú","Perú"],["Otro","Otro"]],R.pais,v=>{R.pais=v;viewResults()}),
-    selectF("f-canal","Canal",[["","Todos"],...canales.map(c=>[c,c])],R.canal,v=>{R.canal=v;viewResults()}),
+    selectF("f-persona","Persona",[["","Todas"],...all.map(r=>[r.id,r.nombre])],R.persona,v=>{R.persona=v;viewResults()}),
     h("label",{class:"check"},h("input",{type:"checkbox",id:"f-parc",checked:R.parciales,onchange(e){R.parciales=e.target.checked;viewResults()}}),"Incluir respuestas en curso"),
     h("button",{class:"btn small",type:"button",onclick(){loadResults(R.key)}},"Actualizar"),
     h("button",{class:"btn small",type:"button",onclick:exportLong,disabled:!rows.length},"Descargar respuestas (CSV)"),
     h("button",{class:"btn small",type:"button",onclick:exportSim,disabled:!rows.length},"Descargar similitud (CSV)"));
-  const tabs=[["grupos","Agrupaciones"],["sim","Similitud"],["cats","Categorías"],["cards","Tarjetas"],["people","Participantes"]];
+  const tabs=[["grupos","Agrupaciones"],["sim","Similitud"],["cats","Categorías"],["cards","Tarjetas"],["nuevas","Tarjetas nuevas"],["people","Participantes"]];
   const tabbar=h("div",{class:"tabs",role:"tablist"},tabs.map(([k,t])=>h("button",{type:"button",role:"tab","aria-selected":String(R.tab===k),onclick(){R.tab=k;viewResults()}},t)));
   const body=h("div",{id:"tabbody"});
   app.replaceChildren(h("div",{class:"res"},h("h1",{style:"font-size:2rem"},"Resultados del card sorting"),stats,filters,tabbar,body));
   if(R.tab==="people")body.append(tabPeople(rows));
+  else if(R.tab==="nuevas")body.append(tabNew(rows));
   else if(!R.data)body.append(h("p",{class:"empty"},"Todavía no hay respuestas con estos filtros. Comparte el enlace con los participantes y vuelve a actualizar."));
   else if(R.tab==="grupos")tabGroups(body);
   else if(R.tab==="sim")tabSim(body);
   else if(R.tab==="cats")tabCats(body,rows);
   else tabCards(body,rows);
 }
+const catCount=r=>(r.grupos||[]).filter(g=>!isFixed(g.n)&&(g.c||[]).length).length;
 const stat=(v,l)=>h("div",{class:"stat"},h("b",{},v),h("span",{},l));
 function selectF(id,lab,opts,val,fn){return h("div",{class:"field"},h("label",{htmlFor:id},lab),h("select",{id,onchange(e){fn(e.target.value)}},opts.map(([v,t])=>h("option",{value:v,selected:v===val},t))))}
 function tabGroups(body){
@@ -529,24 +587,39 @@ function tabSim(body){
 function tabCats(body,rows){
   const list=[...R.data.cats.values()].sort((a,b)=>b.people-a.people);
   body.append(h("div",{style:"display:grid;gap:12px"},h("p",{class:"note"},"Nombres de categoría unidos solo si coinciden al ignorar mayúsculas y tildes. Sinónimos como “Ventas” y “Venta nueva” aparecen por separado."),
-    h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Categoría"),h("th",{class:"num"},"Personas"),h("th",{class:"num"},"Tarjetas"),h("th",{},"Tarjetas más frecuentes"))),
-    h("tbody",{},list.map(c=>{const top=[...c.cards.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5).map(([i,k])=>`${CARDS[i].l} (${k})`).join(" · ");return h("tr",{},h("td",{},c.name),h("td",{class:"num"},c.people),h("td",{class:"num"},c.cards.size),h("td",{},top))}))))));
+    h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Categoría"),h("th",{},"Partió como"),h("th",{class:"num"},"Personas"),h("th",{class:"num"},"Tarjetas"),h("th",{},"Tarjetas más frecuentes"))),
+    h("tbody",{},list.map(c=>{const top=[...c.cards.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5).map(([i,k])=>`${CARDS[i].l} (${k})`).join(" · ");return h("tr",{},h("td",{},c.name),h("td",{},c.base&&norm(c.base)!==norm(c.name)?c.base:c.base?"Base":"Nueva"),h("td",{class:"num"},c.people),h("td",{class:"num"},c.cards.size),h("td",{},top))}))))));
 }
 function tabCards(body,rows){
   const d=R.data,tb=h("tbody");
   const data=CARDS.map((c,i)=>{const tops=[...d.perCard[i].values()].sort((a,b)=>b.count-a.count);const total=tops.reduce((s,e)=>s+e.count,0);let best=-1,bv=0;for(let j=0;j<d.n;j++)if(j!==i&&d.sim[i*d.n+j]>bv){bv=d.sim[i*d.n+j];best=j}
-    return{c,i,top:tops[0],topShare:tops[0]&&total?tops[0].count/total:0,unk:d.seen[i]?d.unk[i]/d.seen[i]:0,best,bv}});
-  function draw(q){const nq=norm(q);tb.replaceChildren(...data.filter(x=>!nq||norm(x.c.l).includes(nq)).sort((a,b)=>b.unk-a.unk||a.topShare-b.topShare).map(x=>h("tr",{},h("td",{},x.c.l,h("div",{class:"muted",style:"font-size:.8rem"},x.c.o.join(" | "))),h("td",{},x.top?x.top.name:"–"),h("td",{class:"num"},pct(x.topShare)),h("td",{class:"num"},pct(x.unk)),h("td",{},x.best>=0?`${CARDS[x.best].l} (${pct(x.bv)})`:"–"))))}
+    return{c,i,top:tops[0],topShare:tops[0]&&total?tops[0].count/total:0,unk:d.seen[i]?d.unk[i]/d.seen[i]:0,dep:d.seen[i]?d.dep[i]/d.seen[i]:0,best,bv}});
+  function draw(q){const nq=norm(q);tb.replaceChildren(...data.filter(x=>!nq||norm(x.c.l).includes(nq)).sort((a,b)=>(b.unk+b.dep)-(a.unk+a.dep)||a.topShare-b.topShare).map(x=>h("tr",{},h("td",{},x.c.l,h("div",{class:"muted",style:"font-size:.8rem"},x.c.o.join(" | "))),h("td",{},x.top?x.top.name:"–"),h("td",{class:"num"},pct(x.topShare)),h("td",{class:"num"},pct(x.dep)),h("td",{},x.c.e&&x.c.e!=="Estructural"?x.c.e:"–"),h("td",{class:"num"},pct(x.unk)),h("td",{},x.best>=0?`${CARDS[x.best].l} (${pct(x.bv)})`:"–"))))}
   body.append(h("div",{style:"display:grid;gap:12px"},h("div",{class:"field",style:"max-width:340px"},h("label",{htmlFor:"csearch"},"Buscar tarjeta"),h("input",{type:"search",id:"csearch",oninput(e){draw(e.target.value)}})),
-    h("p",{class:"note"},"Primero aparecen las tarjetas más desconocidas y las que tienen menos acuerdo. Son las que más conviene revisar."),
-    h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Tarjeta"),h("th",{},"Categoría más usada"),h("th",{class:"num"},"Acuerdo"),h("th",{class:"num"},"No conocida"),h("th",{},"Tarjeta más cercana"))),tb))));
+    h("p",{class:"note"},"Primero aparecen las tarjetas más marcadas como Deprecadas/Apagadas o No conozco este concepto, y luego las de menor acuerdo. Compara lo que marcaron con el estado del Excel."),
+    h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Tarjeta"),h("th",{},"Categoría más usada"),h("th",{class:"num"},"Acuerdo"),h("th",{class:"num"},"Deprecada/Apagada"),h("th",{},"Estado en Excel"),h("th",{class:"num"},"No conocida"),h("th",{},"Tarjeta más cercana"))),tb))));
   draw("");
+}
+function placeOf(r,id){const g=(r.grupos||[]).find(g=>(g.c||[]).includes(id));return g?(FIXED[g.n]||g.n):"Sin ordenar"}
+function tabNew(rows){
+  const list=rows.flatMap(r=>(r.nuevas||[]).map(c=>({r,c})));
+  if(!list.length)return h("p",{class:"empty"},"Todavía nadie ha creado tarjetas nuevas.");
+  return h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Tarjeta"),h("th",{},"Descripción"),h("th",{},"Categoría"),h("th",{},"Persona"))),
+    h("tbody",{},list.map(({r,c})=>h("tr",{},h("td",{},c.n),h("td",{},c.d),h("td",{},placeOf(r,c.id)),h("td",{},r.nombre))))));
+}
+function cardName(r,id){return BY_ID[id]?BY_ID[id].l:((r.nuevas||[]).find(c=>c.id===id)||{}).n||id}
+function openPerson(r){
+  const groups=(r.grupos||[]).filter(g=>(g.c||[]).length);
+  dlg.replaceChildren(h("div",{class:"dlg"},h("h2",{},r.nombre),
+    h("div",{style:"max-height:60dvh;overflow:auto;display:grid;gap:.8rem"},groups.map(g=>h("section",{},h("h3",{},(FIXED[g.n]||g.n)+" ("+g.c.length+")"),h("ul",{style:"margin:.3rem 0 0;padding-left:1.1rem"},g.c.map(id=>h("li",{},cardName(r,id))))))),
+    h("div",{class:"row end"},h("button",{class:"btn",type:"button",onclick(){dlg.close()}},"Cerrar"))));
+  dlg.showModal();
 }
 function tabPeople(rows){
   const list=rows.slice().reverse();
   if(!list.length)return h("p",{class:"empty"},"Todavía no hay respuestas con estos filtros.");
-  return h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Fecha"),h("th",{},"País"),h("th",{},"Canal"),h("th",{},"Uso de OT"),h("th",{},"Estado"),h("th",{class:"num"},"Categorías"),h("th",{class:"num"},"Min"),h("th",{},"Comentario"),h("th",{}))),
-    h("tbody",{},list.map(r=>h("tr",{},h("td",{class:"mono"},new Date(r.creado).toLocaleDateString("es-CL")),h("td",{},r.pais),h("td",{},r.canal),h("td",{},r.antiguedad),h("td",{},r.completado?"Completa":`En curso (faltan ${r.sin_ordenar})`),h("td",{class:"num"},(r.grupos||[]).filter(g=>g.n!==UNKNOWN).length),h("td",{class:"num"},Math.round(r.segundos/60)),h("td",{},r.comentario),h("td",{},delBtn(r)))))));
+  return h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Nombre"),h("th",{},"Fecha"),h("th",{},"Estado"),h("th",{class:"num"},"Categorías"),h("th",{class:"num"},"Nuevas"),h("th",{class:"num"},"Min"),h("th",{},"Comentario"),h("th",{}),h("th",{}))),
+    h("tbody",{},list.map(r=>h("tr",{},h("td",{},r.nombre),h("td",{class:"mono"},new Date(r.creado).toLocaleDateString("es-CL")),h("td",{},r.completado?"Completa":`En curso (faltan ${r.sin_ordenar})`),h("td",{class:"num"},catCount(r)),h("td",{class:"num"},(r.nuevas||[]).length),h("td",{class:"num"},Math.round(r.segundos/60)),h("td",{},r.comentario),h("td",{},h("button",{class:"btn small",type:"button",onclick(){openPerson(r)}},"Ver respuestas")),h("td",{},delBtn(r)))))));
 }
 function delBtn(r){
   if(R.del!==r.id)return h("button",{class:"btn small",type:"button",onclick(){R.del=r.id;viewResults()}},"Eliminar");
@@ -558,8 +631,10 @@ function saveCsv(name,rows){
   const a=h("a",{href:URL.createObjectURL(new Blob([t],{type:"text/csv;charset=utf-8"})),download:name});document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 }
 function exportLong(){
-  const out=[["participante","pais","canal","uso_ot","estado","minutos","categoria","tarjeta_id","tarjeta","origen_excel"]];
-  filtered().forEach((r,i)=>{(r.grupos||[]).forEach(g=>(g.c||[]).forEach(id=>{const c=BY_ID[id];if(c)out.push(["P"+(i+1),r.pais,r.canal,r.antiguedad,r.completado?"completa":"en curso",Math.round(r.segundos/60),g.n===UNKNOWN?"No conozco este concepto":g.n,id,c.l,c.o.join(" | ")])}))});
+  const out=[["persona","estado","minutos","categoria","categoria_base","tipo_categoria","tarjeta_id","tarjeta","descripcion_tarjeta_nueva","estado_excel","origen_excel"]];
+  filtered().forEach(r=>{(r.grupos||[]).forEach(g=>(g.c||[]).forEach(id=>{const c=BY_ID[id],n=c?null:(r.nuevas||[]).find(x=>x.id===id);if(!c&&!n)return;
+    const tipo=isFixed(g.n)?"fija":g.k?(g.n.trim()===BASE_NAME[g.k]?"base":"base editada"):"nueva";
+    out.push([r.nombre,r.completado?"completa":"en curso",Math.round(r.segundos/60),FIXED[g.n]||g.n,g.k?BASE_NAME[g.k]:"",tipo,id,c?c.l:n.n,n?n.d:"",c&&c.e?c.e:"",c?c.o.join(" | "):"tarjeta creada por participante"])}))});
   saveCsv("card-sorting-ot-respuestas.csv",out);
 }
 function exportSim(){
@@ -578,10 +653,11 @@ async function boot(){
       const r=await rpc("cargar_respuesta",{p_id:id});
       if(!r)throw 0;
       if(r.completado){S={...(store.get()||{}),done:true};return viewDone()}
-      const known=new Set(),gs=r.grupos||[];
-      const unknown=(gs.find(g=>g.n===UNKNOWN)||{c:[]}).c.filter(c=>BY_ID[c]);unknown.forEach(c=>known.add(c));
-      const piles=gs.filter(g=>g.n!==UNKNOWN).map((g,i)=>{const cards=(g.c||[]).filter(c=>BY_ID[c]);cards.forEach(c=>known.add(c));return{id:"g"+i+Date.now().toString(36),name:g.n||"",cards}});
-      S={id:r.id,perfil:{pais:r.pais,canal:r.canal,antiguedad:r.antiguedad},deck:shuffle(CARDS.map(c=>c.id).filter(c=>!known.has(c))),piles,unknown,seconds:r.segundos||0,done:false};
+      const gs=r.grupos||[],nuevas=r.nuevas||[],valid=c=>BY_ID[c]||nuevas.some(n=>n.id===c),known=new Set();
+      const take=n=>{const c=((gs.find(g=>g.n===n)||{}).c||[]).filter(valid);c.forEach(x=>known.add(x));return c};
+      const unknown=take(UNKNOWN),depre=take(DEPRE);
+      const piles=gs.filter(g=>!isFixed(g.n)).map((g,i)=>{const cards=(g.c||[]).filter(valid);cards.forEach(c=>known.add(c));return{id:g.k||"g"+i+Date.now().toString(36),base:g.k||undefined,name:g.n||"",cards}});
+      S={id:r.id,nombre:r.nombre,deck:shuffle([...CARDS.map(c=>c.id),...nuevas.map(c=>c.id)].filter(c=>!known.has(c))),piles,unknown,depre,nuevas,seconds:r.segundos||0,done:false};
       persist();history.replaceState(null,"",location.pathname);return viewBoard();
     }catch{
       app.replaceChildren(h("div",{class:"done"},h("h2",{},"No encontramos ese avance"),h("p",{},"Revisa que el enlace esté completo o empieza de nuevo."),h("button",{class:"btn primary",type:"button",onclick(){history.replaceState(null,"",location.pathname);boot()}},"Ir al inicio")));
