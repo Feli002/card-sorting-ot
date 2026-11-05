@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Card Sorting One Touch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600&display=swap">
+<style>
+/* Layout: una mesa de trabajo. Mazo fijo a la izquierda, categorías como pilas a la derecha. */
+:root{
+  --bg:#e9efee;--surface:#fbfdfc;--sunken:#dde6e4;--ink:#122a2e;--muted:#566c70;--line:#c3d1cf;
+  --accent:#0a6a6e;--accent-ink:#ffffff;--pick:#f6c445;--pick-ink:#3a2b00;--danger:#b23a2e;--ok:#23704a;
+  --card:#ffffff;--shadow:0 1px 0 rgba(18,42,46,.1),0 2px 6px rgba(18,42,46,.08);
+  --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;
+  --body:"Schibsted Grotesk","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --head:64px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1b1e;--surface:#16262a;--sunken:#0b1416;--ink:#e4efee;--muted:#9db2b4;--line:#2c4347;
+  --accent:#4cc3c0;--accent-ink:#06282a;--pick:#f6c445;--pick-ink:#3a2b00;--danger:#ef8a7c;--ok:#74cfa0;
+  --card:#1d3136;--shadow:0 1px 0 rgba(0,0,0,.4);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1b1e;--surface:#16262a;--sunken:#0b1416;--ink:#e4efee;--muted:#9db2b4;--line:#2c4347;
+  --accent:#4cc3c0;--accent-ink:#06282a;--pick:#f6c445;--pick-ink:#3a2b00;--danger:#ef8a7c;--ok:#74cfa0;
+  --card:#1d3136;--shadow:0 1px 0 rgba(0,0,0,.4);color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--body);min-height:100dvh}
+[hidden]{display:none!important}
+h1,h2,h3{font-family:var(--display);line-height:1.12;margin:0;text-wrap:balance}
+h1{font-size:clamp(2rem,6vw,3.4rem);font-weight:700;letter-spacing:-.02em}
+h2{font-size:1.5rem;font-weight:700}
+h3{font-size:1.05rem;font-weight:700}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:.55rem .9rem;font-weight:500;min-height:44px}
+.btn:hover:not(:disabled){border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.small{min-height:36px;padding:.3rem .7rem;font-size:.9rem}
+.btn.danger{color:var(--danger);border-color:var(--danger)}
+.link{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;font-weight:500}
+.field{display:grid;gap:.3rem;min-width:0}
+.field label,.label{font-weight:600;font-size:.92rem}
+input[type=text],input[type=password],input[type=search],select,textarea{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:.6rem .7rem;min-height:44px}
+textarea{min-height:90px;resize:vertical}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+
+/* Bienvenida */
+.intro{max-width:1040px;margin:0 auto;padding-block:clamp(28px,6vw,72px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:clamp(24px,5vw,64px);align-items:start}
+.intro-copy{display:grid;gap:1.1rem;min-width:0}
+.intro-copy p{max-width:58ch}
+.how{list-style:none;padding:0;margin:.4rem 0 0;display:grid;gap:.7rem}
+.how li{display:grid;grid-template-columns:2rem minmax(0,1fr);gap:.5rem;align-items:baseline}
+.how b{font-family:var(--mono);color:var(--accent);font-weight:500}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:grid;gap:1rem;min-width:0}
+.fan{position:relative;height:96px;margin-bottom:.2rem}
+.fan span{position:absolute;left:50%;top:14px;width:150px;height:62px;margin-left:-75px;background:var(--card);border:1px solid var(--line);border-radius:6px;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:600;text-align:center;padding:4px}
+.fan span:nth-child(1){transform:translateX(-62px) rotate(-8deg)}
+.fan span:nth-child(2){transform:translateX(62px) rotate(7deg)}
+.fan span:nth-child(3){transform:translateY(4px);border-color:var(--accent)}
+
+/* Mesa */
+.top{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top .name{font-family:var(--display);font-weight:700;font-size:1.1rem;margin-right:auto}
+.progress{display:flex;align-items:center;gap:8px;min-width:170px;flex:0 1 240px}
+.bar{height:8px;flex:1;border-radius:4px;background:var(--sunken);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+.saved{font-size:.82rem;color:var(--muted);white-space:nowrap}
+.saved.bad{color:var(--danger);font-weight:600}
+.table{display:grid;grid-template-columns:320px minmax(0,1fr);gap:16px;align-items:start;padding-block:16px 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.deck{position:sticky;top:calc(var(--head) + 12px);max-height:calc(100dvh - var(--head) - 28px);display:flex;flex-direction:column;background:var(--sunken);border-radius:12px;padding:12px;gap:8px;min-width:0}
+.deck-list{overflow:auto;display:flex;flex-direction:column;gap:6px;padding:2px;flex:1;min-height:0}
+.empty{color:var(--muted);padding:12px;text-align:center}
+.tcard{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:.5rem .6rem;box-shadow:var(--shadow);line-height:1.3;font-size:.95rem;font-weight:500;touch-action:manipulation;user-select:none;-webkit-user-select:none;min-height:44px;overflow-wrap:anywhere}
+.tcard:hover{border-color:var(--accent)}
+.tcard[aria-pressed="true"]{background:var(--pick);color:var(--pick-ink);border-color:var(--pick)}
+.tcard.ghosted{opacity:.35}
+.ghost{position:fixed;z-index:60;pointer-events:none;width:240px;transform:rotate(-2deg) translate(-20px,-16px);box-shadow:0 10px 24px rgba(0,0,0,.28)}
+.ghost em{position:absolute;right:-8px;top:-10px;background:var(--accent);color:var(--accent-ink);font:500 .78rem var(--mono);border-radius:10px;padding:0 7px}
+.board{display:grid;gap:12px;min-width:0}
+.unknown,.pile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.unknown{border-style:dashed}
+.pile-head{display:flex;gap:6px;align-items:center}
+.pile-head input{min-height:38px;padding:.3rem .5rem;font-weight:600}
+.pile-head input:placeholder-shown{border-color:var(--danger)}
+.count{font-size:.8rem;color:var(--muted);min-width:1.6em;text-align:right}
+.icon{border:0;background:none;width:36px;height:36px;border-radius:6px;color:var(--muted);flex:none}
+.icon:hover{background:var(--sunken);color:var(--ink)}
+.pile-cards{display:flex;flex-direction:column;gap:5px;max-height:320px;overflow:auto;padding:1px}
+.unknown .pile-cards{flex-direction:row;flex-wrap:wrap}
+.unknown .tcard{width:auto;max-width:100%}
+.drop-hint{font-size:.88rem;color:var(--muted)}
+.is-over{outline:3px solid var(--accent);outline-offset:1px}
+.piles{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;align-items:start}
+.newpile{border:2px dashed var(--line);background:none;border-radius:10px;min-height:96px;font-weight:600;color:var(--accent);padding:12px}
+.newpile:hover{border-color:var(--accent)}
+.actionbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--ink);color:var(--bg);display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.actionbar .btn{color:var(--ink)}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:20px;width:min(480px,calc(100vw - 32px));max-height:calc(100dvh - 48px)}
+dialog::backdrop{background:rgba(6,18,20,.55)}
+.dlg{display:grid;gap:.9rem}
+.movelist{display:grid;gap:6px;max-height:44dvh;overflow:auto}
+.movelist .btn{text-align:left;width:100%}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row.end{justify-content:flex-end}
+.err{color:var(--danger);font-weight:500}
+.done{max-width:640px;margin:0 auto;padding-block:clamp(40px,10vw,110px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:1rem}
+
+/* Resultados */
+.res{max-width:1240px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:18px}
+.lock{max-width:420px;margin:0 auto}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.stat{background:var(--surface);padding:12px 14px}
+.stat b{display:block;font:500 1.7rem/1.1 var(--mono)}
+.stat span{font-size:.86rem;color:var(--muted)}
+.filters{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+.filters .field{flex:0 1 170px}
+.check{display:flex;gap:.45rem;align-items:center;min-height:44px}
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:none;padding:.6rem .8rem;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap;min-height:44px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.clusters{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;align-items:start}
+.cluster{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:6px;min-width:0}
+.cluster ul{list-style:none;margin:0;padding:0;display:grid;gap:3px;font-size:.93rem}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.93rem}
+th,td{padding:.5rem .7rem;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;background:var(--sunken);white-space:nowrap}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+.heatwrap{position:relative;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);max-height:760px}
+canvas{display:block}
+.tip{position:fixed;z-index:50;pointer-events:none;background:var(--ink);color:var(--bg);padding:.4rem .6rem;border-radius:6px;font-size:.85rem;max-width:320px}
+.slider{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.slider input{flex:0 1 260px;accent-color:var(--accent)}
+.note{font-size:.9rem;color:var(--muted);max-width:70ch}
+
+@media (max-width:800px){
+  :root{--head:0px}
+  .intro{grid-template-columns:minmax(0,1fr)}
+  .top{position:static}
+  .table{grid-template-columns:minmax(0,1fr)}
+  .deck{position:static;max-height:46dvh}
+  .piles{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<dialog id="dlg"></dialog>
+<script id="cards-data" type="application/json">[{"l":"Vista 360","o":["Estructurales · Estructurales · fila 5"],"p":"ambos","id":"c001"},{"l":"Header","o":["Estructurales · Estructurales · fila 6"],"p":"ambos","id":"c002"},{"l":"Sidebar","o":["Estructurales · Estructurales · fila 7"],"p":"ambos","id":"c003"},{"l":"Cambio de PDV","o":["Estructurales · Estructurales · fila 8"],"p":"ambos","id":"c004"},{"l":"Información General","o":["Estructurales · Secciones Vista 360 · fila 11"],"p":"ambos","id":"c005"},{"l":"Contacto","o":["Estructurales · Secciones Vista 360 · fila 12"],"p":"ambos","id":"c006"},{"l":"Direcciones","o":["Estructurales · Secciones Vista 360 · fila 13"],"p":"ambos","id":"c007"},{"l":"Perfil de facturación (sección Vista 360)","o":["Estructurales · Secciones Vista 360 · fila 14"],"p":"ambos","id":"c008"},{"l":"Documentación","o":["Estructurales · Secciones Vista 360 · fila 15"],"p":"ambos","id":"c009"},{"l":"Usuarios","o":["Estructurales · Secciones Vista 360 · fila 16"],"p":"ambos","id":"c010"},{"l":"Cuenta Corriente","o":["Estructurales · Secciones Vista 360 · fila 17","Gestión · Proyectos · fila 41"],"p":"ambos","id":"c011"},{"l":"Mapa de red","o":["Estructurales · Secciones Vista 360 · fila 18","Gestión · Proyectos · fila 42"],"p":"ambos","id":"c012"},{"l":"Boletas vigente - total a pagar","o":["Estructurales · Boleta · fila 20"],"p":"ambos","id":"c013"},{"l":"Oferta plan móvil","o":["Estructurales · Campañas cliente · fila 22"],"p":"ambos","id":"c014"},{"l":"Oferta hogar","o":["Estructurales · Campañas cliente · fila 23"],"p":"ambos","id":"c015"},{"l":"Oferta en equipos","o":["Estructurales · Campañas cliente · fila 24"],"p":"ambos","id":"c016"},{"l":"Oferta prepago","o":["Estructurales · Campañas cliente · fila 25"],"p":"ambos","id":"c017"},{"l":"Campaña Buyback","o":["Estructurales · Campañas cliente · fila 26"],"p":"CL","id":"c018"},{"l":"Assets Hogar","o":["Estructurales · Assets · fila 28"],"p":"ambos","id":"c019"},{"l":"Assets Móvil","o":["Estructurales · Assets · fila 29"],"p":"ambos","id":"c020"},{"l":"Assets: otros productos","o":["Estructurales · Assets · fila 30"],"p":"ambos","id":"c021"},{"l":"Últimas solicitudes","o":["Estructurales · Generales · fila 32"],"p":"ambos","id":"c022"},{"l":"Acciones generales - Venta","o":["Estructurales · Generales · fila 33"],"p":"ambos","id":"c023"},{"l":"Acciones generales - Postventa","o":["Estructurales · Generales · fila 34"],"p":"ambos","id":"c024"},{"l":"Otras acciones","o":["Estructurales · Generales · fila 35"],"p":"ambos","id":"c025"},{"l":"Marca: Afinidad / Marca cliente","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 37"],"p":"CL","id":"c026"},{"l":"Marca: Afinidad / Descuento afinidad","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 38"],"p":"CL","id":"c027"},{"l":"Marca: Entel Visa","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 39"],"p":"CL","id":"c028"},{"l":"Marcas especiales","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 40"],"p":"ambos","id":"c029"},{"l":"Marca: IVR","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 41"],"p":"CL","id":"c030"},{"l":"Marca: ARM / Fraude","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 42"],"p":"ambos","id":"c031"},{"l":"Marca: Bloqueo FMS","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 43"],"p":"PE","id":"c032"},{"l":"Factibilidad crediticia","o":["Estructurales · Trasnversales · fila 45"],"p":"ambos","id":"c033"},{"l":"Catálogo de planes Móviles","o":["Estructurales · Trasnversales · fila 46"],"p":"ambos","id":"c034"},{"l":"Catálogo de Equipos y Accesorios","o":["Estructurales · Trasnversales · fila 47"],"p":"ambos","id":"c035"},{"l":"Resumen de ventas + Idioma + Publicidad","o":["Estructurales · Trasnversales · fila 48"],"p":"PE","id":"c036"},{"l":"Resumen generales","o":["Estructurales · Trasnversales · fila 49"],"p":"ambos","id":"c037"},{"l":"Perfil de facturación (paso transversal)","o":["Estructurales · Trasnversales · fila 50"],"p":"ambos","id":"c038"},{"l":"Delivery","o":["Estructurales · Trasnversales · fila 51"],"p":"ambos","id":"c039"},{"l":"Validación de identidad","o":["Estructurales · Trasnversales · fila 52"],"p":"ambos","id":"c040"},{"l":"Validación Cliente Extranjero","o":["Estructurales · Trasnversales · fila 53"],"p":"PE","id":"c041"},{"l":"Validación Asesor","o":["Estructurales · Trasnversales · fila 54"],"p":"PE","id":"c042"},{"l":"Validación Asesor Extranjero","o":["Estructurales · Trasnversales · fila 55"],"p":"PE","id":"c043"},{"l":"Contraseña única / creación","o":["Estructurales · Trasnversales · fila 56"],"p":"PE","id":"c044"},{"l":"Contraseña única / validación","o":["Estructurales · Trasnversales · fila 57"],"p":"PE","id":"c045"},{"l":"Contraseña única / restaurar","o":["Estructurales · Trasnversales · fila 58"],"p":"PE","id":"c046"},{"l":"Condiciones de Uso / Móvil","o":["Estructurales · Trasnversales · fila 59"],"p":"PE","id":"c047"},{"l":"Condiciones de Uso / Móvil Portabilidad","o":["Estructurales · Trasnversales · fila 60"],"p":"PE","id":"c048"},{"l":"Condiciones de Uso / Móvil Desbloqueo","o":["Estructurales · Trasnversales · fila 61"],"p":"PE","id":"c049"},{"l":"Biometría Facial","o":["Estructurales · Trasnversales · fila 62"],"p":"CL","id":"c050"},{"l":"Assets Hogar y Móvil (complemento)","o":["Estructurales · Complementos · fila 65"],"p":"ambos","id":"c051"},{"l":"Activación Postpago","o":["Ventas · Activaciones Móviles · fila 6"],"p":"ambos","id":"c052"},{"l":"Activación Prepago","o":["Ventas · Activaciones Móviles · fila 7"],"p":"ambos","id":"c053"},{"l":"BAM","o":["Ventas · Activaciones Móviles · fila 8"],"p":"PE","id":"c054"},{"l":"Activación Prepago Anónimo","o":["Ventas · Activaciones Móviles · fila 9"],"p":"CL","id":"c055"},{"l":"Pago Anticipado","o":["Ventas · Activaciones Móviles · fila 10"],"p":"CL","id":"c056"},{"l":"Portabilidad Postpago - CAP","o":["Ventas · Portabilidad · fila 12"],"p":"CL","id":"c057"},{"l":"Portabilidad Prepago - CAP","o":["Ventas · Portabilidad · fila 14"],"p":"CL","id":"c058"},{"l":"Portabilidad Postpago - PIN","o":["Ventas · Portabilidad · fila 15"],"p":"PE","id":"c059"},{"l":"Portabilidad Prepago","o":["Ventas · Portabilidad · fila 16"],"p":"PE","id":"c060"},{"l":"Consulta de portabilidad","o":["Ventas · Portabilidad · fila 17","Gestión · Consultas · fila 36"],"p":"ambos","id":"c061"},{"l":"Buyback: Venta Canal presencial","o":["Ventas · Buyback · fila 19"],"p":"ambos","id":"c062"},{"l":"Buyback: Anulación y cancelación (Fase 1)","o":["Ventas · Buyback · fila 20"],"p":"ambos","id":"c063"},{"l":"Prepago - Comprar bolsa","o":["Ventas · Bolsas · fila 22"],"p":"ambos","id":"c064"},{"l":"Postpago - Comprar bolsa","o":["Ventas · Bolsas · fila 23"],"p":"ambos","id":"c065"},{"l":"Postpago - Bolsas Fast","o":["Ventas · Bolsas · fila 24"],"p":"ambos","id":"c066"},{"l":"Suscripción - Bolsa Roaming","o":["Ventas · Bolsas · fila 25"],"p":"CL","id":"c067"},{"l":"Recarga One Shot","o":["Ventas · Recargas · fila 27"],"p":"PE","id":"c068"},{"l":"Recarga recurrente","o":["Ventas · Recargas · fila 28"],"p":"PE","id":"c069"},{"l":"Asociar seguro","o":["Ventas · Seguros · fila 30"],"p":"CL","id":"c070"},{"l":"Seguro posterior a venta","o":["Ventas · Seguros · fila 31"],"p":"CL","id":"c071"},{"l":"Venta seguro","o":["Ventas · Seguros · fila 32"],"p":"PE","id":"c072"},{"l":"Cambio de equipo ACOC","o":["Ventas · Equipo · fila 34"],"p":"ambos","lp":"Cambio de equipo","id":"c073"},{"l":"Aceleración de cuotas","o":["Ventas · Equipo · fila 35","Postventa · Anulación, cancelación y aceleración · fila 6"],"p":"ambos","id":"c074"},{"l":"Venta Hogar: Postpago - Alámbrica","o":["Ventas · Venta Hogar · fila 40"],"p":"ambos","lp":"Venta Hogar: FTTH - Venta Pack Fibra","id":"c075"},{"l":"Venta Hogar: TFI - Postpago","o":["Ventas · Venta Hogar · fila 42"],"p":"PE","id":"c076"},{"l":"Venta Hogar: Postpago Indoor - INA","o":["Ventas · Venta Hogar · fila 43"],"p":"PE","id":"c077"},{"l":"Venta Hogar: Postpago Outdoor - INA","o":["Ventas · Venta Hogar · fila 44"],"p":"PE","id":"c078"},{"l":"Venta Hogar: Prepago Indoor","o":["Ventas · Venta Hogar · fila 45"],"p":"PE","id":"c079"},{"l":"Portabilidad Hogar: Alámbrica","o":["Ventas · Portabilidad hogar · fila 47"],"p":"CL","id":"c080"},{"l":"Portabilidad Hogar: Postpago Indoor - INA","o":["Ventas · Portabilidad hogar · fila 48"],"p":"PE","id":"c081"},{"l":"Portabilidad Hogar: Postpago Outdoor - INA","o":["Ventas · Portabilidad hogar · fila 49"],"p":"PE","id":"c082"},{"l":"Portabilidad Hogar: Prepago Indoor","o":["Ventas · Portabilidad hogar · fila 50"],"p":"PE","id":"c083"},{"l":"Portabilidad Hogar: TFI - Postpago","o":["Ventas · Portabilidad hogar · fila 51"],"p":"PE","id":"c084"},{"l":"Factibilidad Técnica con venta","o":["Ventas · Factibilidad técnica · fila 53"],"p":"CL","id":"c085"},{"l":"Entel TV - Base","o":["Ventas · Entel TV · fila 55"],"p":"CL","id":"c086"},{"l":"Entel TV + Deco","o":["Ventas · Entel TV · fila 56"],"p":"CL","id":"c087"},{"l":"Venta Suelta Convergente (Hogar, Móvil y Accesorios)","o":["Ventas · Catálogo · fila 59"],"p":"CL","id":"c088"},{"l":"Venta Suelta - Móvil","o":["Ventas · Catálogo · fila 60"],"p":"ambos","id":"c089"},{"l":"Venta Suelta - Hogar","o":["Ventas · Catálogo · fila 61"],"p":"ambos","id":"c090"},{"l":"Venta Hogar - FTTH","o":["Ventas · Catálogo · fila 62"],"p":"PE","id":"c091"},{"l":"Anulación Móvil","o":["Postventa · Anulación, cancelación y aceleración · fila 7"],"p":"ambos","id":"c092"},{"l":"Cancelación Móvil","o":["Postventa · Anulación, cancelación y aceleración · fila 8","Postventa · Anulación, cancelación y aceleración · fila 9"],"p":"ambos","id":"c093"},{"l":"Anulación Hogar","o":["Postventa · Anulación, cancelación y aceleración · fila 10"],"p":"ambos","lp":"Anulación Hogar + FTTH","id":"c094"},{"l":"Cancelación Hogar","o":["Postventa · Anulación, cancelación y aceleración · fila 11"],"p":"ambos","lp":"Cancelación Hogar + FTTH","id":"c095"},{"l":"Anulación Entel TV","o":["Postventa · Anulación, cancelación y aceleración · fila 12"],"p":"CL","id":"c096"},{"l":"Cancelación Entel TV","o":["Postventa · Anulación, cancelación y aceleración · fila 13"],"p":"CL","id":"c097"},{"l":"Bloqueo Móvil","o":["Postventa · Bloqueo y desbloqueo · fila 15"],"p":"ambos","id":"c098"},{"l":"Desbloqueo Móvil","o":["Postventa · Bloqueo y desbloqueo · fila 16"],"p":"ambos","id":"c099"},{"l":"Bloqueo Hogar","o":["Postventa · Bloqueo y desbloqueo · fila 17"],"p":"CL","id":"c100"},{"l":"Desbloqueo Hogar","o":["Postventa · Bloqueo y desbloqueo · fila 18"],"p":"CL","id":"c101"},{"l":"Desbloqueo + Face ID","o":["Postventa · Bloqueo y desbloqueo · fila 19"],"p":"CL","id":"c102"},{"l":"Bloqueo por Fraude/Contratación no solicitada","o":["Postventa · Bloqueo y desbloqueo · fila 20","Postventa · Otras acciones · fila 105"],"p":"PE","id":"c103"},{"l":"Desbloqueo por Fraude/Contratación no solicitada","o":["Postventa · Bloqueo y desbloqueo · fila 21"],"p":"PE","id":"c104"},{"l":"Renteseg: Bloqueo Móvil","o":["Postventa · Renteseg · fila 23"],"p":"PE","id":"c105"},{"l":"Renteseg: Desbloqueo Móvil","o":["Postventa · Renteseg · fila 24"],"p":"PE","id":"c106"},{"l":"Renteseg: Consulta de IMEI","o":["Postventa · Renteseg · fila 25"],"p":"PE","id":"c107"},{"l":"Renteseg: Registro de IMEI/ Fraude","o":["Postventa · Renteseg · fila 26"],"p":"PE","id":"c108"},{"l":"Cambio plan Móvil - Postpago","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 30"],"p":"ambos","id":"c109"},{"l":"Cambio plan Móvil - Prepago","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 31"],"p":"ambos","id":"c110"},{"l":"Cambio de Plan por Excepción/Blindaje","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 32"],"p":"CL","id":"c111"},{"l":"Cambio de Plan + Compra de equipo Móvil","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 33"],"p":"CL","id":"c112"},{"l":"Cambio de plan: Inalámbrico / downgrade-upgrade-upselling","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 34"],"p":"ambos","id":"c113"},{"l":"Cambio de plan: Inalámbrico / upselling con portabilidad","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 35"],"p":"ambos","id":"c114"},{"l":"Cambio de plan: Inalámbrico-Fibra (cambio de tecnología) / Hogar","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 36"],"p":"CL","id":"c115"},{"l":"Cambio de plan / Upselling Indoor + TFI","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 38"],"p":"PE","id":"c116"},{"l":"Cambio de plan/ Mono TFI pp a pp/ps a ps","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 39"],"p":"PE","id":"c117"},{"l":"Cambio de plan: Fibra","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 40"],"p":"ambos","lp":"FTTH-Guías 48-49 - Cambio de plan sin instalación","id":"c118"},{"l":"Cambio de SIM - Móvil","o":["Postventa · Cambio de SIM, Número y Equipo · fila 42"],"p":"ambos","id":"c119"},{"l":"Cambio de SIM - Hogar","o":["Postventa · Cambio de SIM, Número y Equipo · fila 43"],"p":"ambos","id":"c120"},{"l":"Cambio de Número - Hogar","o":["Postventa · Cambio de SIM, Número y Equipo · fila 44"],"p":"ambos","id":"c121"},{"l":"Cambio de Número - Móvil_Postpago","o":["Postventa · Cambio de SIM, Número y Equipo · fila 45"],"p":"ambos","id":"c122"},{"l":"Cambio de Número - Móvil_Prepago","o":["Postventa · Cambio de SIM, Número y Equipo · fila 46"],"p":"ambos","id":"c123"},{"l":"Cambio de Equipo - Móvil","o":["Postventa · Cambio de SIM, Número y Equipo · fila 47"],"p":"CL","id":"c124"},{"l":"Renuncia Prepago Móvil","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 49"],"p":"CL","id":"c125"},{"l":"Renuncia/Migración Móvil","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 50"],"p":"ambos","lp":"Renuncia + Migración","id":"c126"},{"l":"Renuncia Prepago","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 51"],"p":"PE","id":"c127"},{"l":"Renuncia con desinstalación Hogar","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 52"],"p":"CL","id":"c128"},{"l":"Renuncia Full hogar inalámbrico con desinstalación","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 53"],"p":"PE","id":"c129"},{"l":"FTTH-Renuncia total","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 54"],"p":"PE","id":"c130"},{"l":"Renuncia Full Hogar ALA","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 55"],"p":"CL","id":"c131"},{"l":"Renuncia con Downselling Hogar ALA","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 56"],"p":"CL","id":"c132"},{"l":"Renuncia outdoor Hogar INA","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 57"],"p":"ambos","lp":"Renuncia y Downsellings INA","id":"c133"},{"l":"Migración PP a PS + equipo","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 58"],"p":"ambos","id":"c134"},{"l":"Migración Full - Inalámbrico / Hogar","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 59"],"p":"CL","id":"c135"},{"l":"Migración Hogar / Postpago a Prepago desde Renuncia","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 60"],"p":"PE","id":"c136"},{"l":"Migración Dúo a Mono / TFI a Prepago","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 61"],"p":"PE","id":"c137"},{"l":"Migración TFI","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 62"],"p":"PE","id":"c138"},{"l":"Migración Hogar / TFI Prepago","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 63"],"p":"PE","id":"c139"},{"l":"Susp. Temporal - Móvil","o":["Postventa · Suspensiones y reactivaciones · fila 65","Postventa · Suspensiones y reactivaciones · fila 67"],"p":"ambos","id":"c140"},{"l":"Susp. Temporal - Hogar","o":["Postventa · Suspensiones y reactivaciones · fila 66","Postventa · Suspensiones y reactivaciones · fila 68"],"p":"ambos","id":"c141"},{"l":"Reactivar línea - Móvil","o":["Postventa · Suspensiones y reactivaciones · fila 69"],"p":"ambos","id":"c142"},{"l":"Reactivar línea - Hogar","o":["Postventa · Suspensiones y reactivaciones · fila 70"],"p":"ambos","id":"c143"},{"l":"No suspensión","o":["Postventa · Suspensiones y reactivaciones · fila 71"],"p":"PE","id":"c144"},{"l":"Cambio de domicilio","o":["Postventa · Traslados · fila 76"],"p":"ambos","lp":"Cambio de domicilio - FTTH","id":"c145"},{"l":"Cambio de domicilio outdoor(externo)","o":["Postventa · Traslados · fila 77"],"p":"PE","id":"c146"},{"l":"Reubicación de equipo (interno)","o":["Postventa · Traslados · fila 78"],"p":"PE","id":"c147"},{"l":"Cambio de domicilio / Regularización dirección cliente","o":["Postventa · Traslados · fila 79"],"p":"CL","id":"c148"},{"l":"Reubicación de equipo","o":["Postventa · Traslados · fila 80"],"p":"CL","id":"c149"},{"l":"Reagendamiento por venta nueva o que no se ha instalado","o":["Postventa · Traslados · fila 81"],"p":"CL","id":"c150"},{"l":"Reagendamiento por traslado externo","o":["Postventa · Traslados · fila 82"],"p":"CL","id":"c151"},{"l":"Cambio de contrato Hogar/Móvil","o":["Postventa · Cambio de contrato · fila 86"],"p":"CL","id":"c152"},{"l":"Canales adicionales","o":["Postventa · Adicionales · fila 90"],"p":"CL","id":"c153"},{"l":"Gestionar equipos adicionales / Agregar equipos","o":["Postventa · Adicionales · fila 91"],"p":"CL","id":"c154"},{"l":"Gestionar equipos adicionales / Quitar equipos","o":["Postventa · Adicionales · fila 92"],"p":"CL","id":"c155"},{"l":"VAS + VAS Premium","o":["Postventa · Servicios VAS · fila 94"],"p":"ambos","id":"c156"},{"l":"Restricciones VAS Hogar","o":["Postventa · Servicios VAS · fila 95"],"p":"ambos","id":"c157"},{"l":"Restricciones VAS Inalámbrico Móvil","o":["Postventa · Servicios VAS · fila 96"],"p":"ambos","id":"c158"},{"l":"Agendamiento Hogar","o":["Postventa · Agendamientos · fila 100"],"p":"CL","id":"c159"},{"l":"Reagendamiento Hogar","o":["Postventa · Agendamientos · fila 101"],"p":"CL","id":"c160"},{"l":"Llamada futura","o":["Postventa · Agendamientos · fila 102","Postventa · Otras acciones · fila 106"],"p":"CL","id":"c161"},{"l":"Creación de cliente","o":["Gestión · Gestión y edición · fila 6"],"p":"ambos","id":"c162"},{"l":"Editar contacto","o":["Gestión · Gestión y edición · fila 7"],"p":"ambos","id":"c163"},{"l":"Editar / Crear nueva dirección","o":["Gestión · Gestión y edición · fila 8"],"p":"ambos","id":"c164"},{"l":"Búsqueda de cliente / Ingreso V360","o":["Gestión · Gestión y edición · fila 9"],"p":"ambos","id":"c165"},{"l":"Regularización de cliente Anónimo","o":["Gestión · Gestión y edición · fila 10"],"p":"CL","id":"c166"},{"l":"Preferencia de notificaciones y contacto","o":["Gestión · Gestión y edición · fila 11"],"p":"CL","id":"c167"},{"l":"RUC / Edición + Eliminación","o":["Gestión · Gestión y edición · fila 13"],"p":"PE","id":"c168"},{"l":"Crear RUC","o":["Gestión · Gestión y edición · fila 15"],"p":"PE","id":"c169"},{"l":"Cambio de titularidad: Hogar Postpago / Prepago","o":["Gestión · Cambio de titularidad / Cesión de línea · fila 17"],"p":"ambos","id":"c170"},{"l":"Cambio de titularidad: Móvil Postpago / Prepago","o":["Gestión · Cambio de titularidad / Cesión de línea · fila 18"],"p":"ambos","id":"c171"},{"l":"Cambio de titularidad fallecido","o":["Gestión · Cambio de titularidad / Cesión de línea · fila 19"],"p":"ambos","id":"c172"},{"l":"Cambio de titularidad - Declaración Jurada","o":["Gestión · Cambio de titularidad / Cesión de línea · fila 20"],"p":"PE","id":"c173"},{"l":"Perfil de facturación: Perfil Cliente","o":["Gestión · Perfil de facturación · fila 23","Gestión · Perfil de facturación · fila 26"],"p":"ambos","id":"c174"},{"l":"Perfil de facturación: Perfil Cliente - Nuevo / Antiguo","o":["Gestión · Perfil de facturación · fila 24","Gestión · Perfil de facturación · fila 27"],"p":"ambos","id":"c175"},{"l":"Perfil de facturación: Edición y Cambios de perfil","o":["Gestión · Perfil de facturación · fila 25","Gestión · Perfil de facturación · fila 28"],"p":"ambos","id":"c176"},{"l":"Historiales Móviles/Hogar","o":["Gestión · Solicitudes e historiales · fila 30"],"p":"ambos","id":"c177"},{"l":"Solicitudes V360","o":["Gestión · Solicitudes e historiales · fila 31"],"p":"ambos","id":"c178"},{"l":"Todas las solicitudes","o":["Gestión · Solicitudes e historiales · fila 32"],"p":"ambos","id":"c179"},{"l":"Reclamos con compensación","o":["Gestión · Solicitudes e historiales · fila 33"],"p":"PE","id":"c180"},{"l":"Consulta de documentos","o":["Gestión · Consultas · fila 35"],"p":"ambos","id":"c181"},{"l":"Consulta de factibilidad suelta / Hogar","o":["Gestión · Consultas · fila 37"],"p":"CL","id":"c182"},{"l":"Consulta Tracking delivery","o":["Gestión · Consultas · fila 38"],"p":"CL","id":"c183"},{"l":"Consulta Tracking delivery + Método de entrega","o":["Gestión · Consultas · fila 39"],"p":"CL","id":"c184"},{"l":"Registro de ID de Atención: Desde solicitudes","o":["Gestión · Registro de ID de Atención · fila 44"],"p":"PE","id":"c185"},{"l":"Registro de ID de Atención: Desde ingreso OTSF","o":["Gestión · Registro de ID de Atención · fila 45"],"p":"PE","id":"c186"},{"l":"Contingencias: Notificación","o":["Gestión · Contingencias · fila 47"],"p":"CL","id":"c187"},{"l":"Contingencias: Visualización","o":["Gestión · Contingencias · fila 48"],"p":"CL","id":"c188"},{"l":"Consentimiento de datos (Fase 1)","o":["Gestión · Consentimiento de datos · fila 50"],"p":"CL","id":"c189"}]</script>
+<script>
+"use strict";
+const SB_URL="https://jdqagvkvxbzlfayuyzbw.supabase.co",SB_KEY="sb_publishable_RlS6hqg_b8zY1mswYhgr2g_lXdyMnJb";
+const CARDS=JSON.parse(document.getElementById("cards-data").textContent);
+const BY_ID=Object.fromEntries(CARDS.map(c=>[c.id,c]));
+const UNKNOWN="__no_conozco__",LS="csot:v1";
+const app=document.getElementById("app"),dlg=document.getElementById("dlg");
+
+/* utilidades. Todo texto de usuario entra por textContent. */
+function h(tag,props,...kids){
+  const e=document.createElement(tag);
+  for(const[k,v]of Object.entries(props||{})){
+    if(v==null||v===false)continue;
+    if(k==="class")e.className=v;
+    else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);
+    else if(k in e&&k!=="list")e[k]=v;
+    else e.setAttribute(k,v===true?"":v);
+  }
+  for(const c of kids.flat()){if(c==null||c===false)continue;e.append(c.nodeType?c:String(c))}
+  return e;
+}
+const store={get(){try{return JSON.parse(localStorage.getItem(LS))}catch{return null}},set(v){try{localStorage.setItem(LS,JSON.stringify(v))}catch{}},clear(){try{localStorage.removeItem(LS)}catch{}}};
+async function rpc(fn,body){
+  const r=await fetch(SB_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const t=await r.text();let j=null;try{j=t?JSON.parse(t):null}catch{}
+  if(!r.ok){const e=new Error((j&&j.message)||"error");e.status=r.status;throw e}
+  return j;
+}
+function uuid(){return crypto.randomUUID?crypto.randomUUID():"10000000-1000-4000-8000-100000000000".replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16))}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function norm(s){return String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/\s+/g," ").trim()}
+function pct(x){return Math.round(x*100)+"%"}
+function median(a){if(!a.length)return 0;const s=a.slice().sort((x,y)=>x-y),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2}
+
+/* ---------- Participante ---------- */
+let S=null,undoStack=[],selected=new Set(),query="",saveState="idle",saveTimer=null,saving=false,dirty=false,lastTick=Date.now();
+const label=id=>{const c=BY_ID[id];return S&&S.perfil.pais==="Perú"&&c.lp?c.lp:c.l};
+function placed(){const p=new Set(S.unknown);S.piles.forEach(g=>g.cards.forEach(c=>p.add(c)));return p}
+function persist(){store.set(S)}
+function snapshot(){undoStack.push(JSON.stringify({piles:S.piles,unknown:S.unknown,deck:S.deck}));if(undoStack.length>30)undoStack.shift()}
+function changed(){persist();dirty=true;scheduleSave()}
+function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(pushSave,3000)}
+function payload(done,comentario){
+  return{p_id:S.id,p_pais:S.perfil.pais,p_canal:S.perfil.canal,p_antiguedad:S.perfil.antiguedad,
+    p_grupos:[{n:UNKNOWN,c:S.unknown},...S.piles.map(g=>({n:g.name,c:g.cards}))],
+    p_sin_ordenar:S.deck.length,p_comentario:comentario||"",p_segundos:Math.round(S.seconds),p_completado:!!done};
+}
+async function pushSave(){
+  if(saving||!dirty)return;
+  saving=true;dirty=false;setSaved("saving");
+  try{await rpc("guardar_respuesta",payload(false));setSaved("ok")}
+  catch{dirty=true;setSaved("bad");clearTimeout(saveTimer);saveTimer=setTimeout(pushSave,15000)}
+  saving=false;if(dirty&&saveState!=="bad")scheduleSave();
+}
+function setSaved(s){saveState=s;const e=document.getElementById("saved");if(e){e.textContent=s==="bad"?"Sin conexión: tu avance sigue en este equipo":s==="saving"?"Guardando…":s==="ok"?"Avance guardado":"";e.className="saved"+(s==="bad"?" bad":"")}}
+setInterval(()=>{const n=Date.now();if(S&&!S.done&&document.visibilityState==="visible"&&n-lastTick<30000)S.seconds+=(n-lastTick)/1000;lastTick=n},5000);
+window.addEventListener("pagehide",()=>{if(S&&!S.done){persist();if(dirty){try{fetch(SB_URL+"/rest/v1/rpc/guardar_respuesta",{method:"POST",keepalive:true,headers:{apikey:SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(payload(false))})}catch{}}}});
+
+function viewIntro(prefill){
+  const form=h("form",{class:"panel",onsubmit(e){e.preventDefault();
+    const fd=new FormData(form);
+    S={id:uuid(),perfil:{pais:fd.get("pais"),canal:fd.get("canal"),antiguedad:fd.get("antiguedad")},deck:shuffle(CARDS.map(c=>c.id)),piles:[],unknown:[],seconds:0,done:false};
+    persist();dirty=true;pushSave();viewBoard();
+  }},
+    h("div",{class:"fan","aria-hidden":"true"},h("span",{},"Cambio de plan"),h("span",{},"Recarga"),h("span",{},"Agendamiento")),
+    h("h2",{},"Antes de empezar"),
+    field("pais","¿En qué país trabajas?",[["","Elige una opción"],["Chile","Chile"],["Perú","Perú"],["Otro","Otro"]]),
+    field("canal","¿Dónde trabajas?",[["","Elige una opción"],["Call Center","Call Center"],["Tienda","Tienda"],["Otro","Otro"]]),
+    field("antiguedad","¿Hace cuánto usas One Touch?",[["","Elige una opción"],["Menos de 6 meses","Menos de 6 meses"],["6 a 12 meses","6 a 12 meses"],["1 a 3 años","1 a 3 años"],["Más de 3 años","Más de 3 años"],["No uso One Touch","No uso One Touch"]]),
+    h("button",{class:"btn primary",type:"submit"},"Empezar a ordenar")
+  );
+  app.replaceChildren(h("div",{class:"intro"},
+    h("div",{class:"intro-copy"},
+      h("h1",{},"Ayúdanos a ordenar One Touch"),
+      h("p",{},`Tienes ${CARDS.length} tarjetas con funciones y conceptos de la plataforma. Agrúpalas como tenga sentido para ti y pon un nombre a cada grupo. No hay respuestas correctas ni incorrectas.`),
+      h("ol",{class:"how"},
+        h("li",{},h("b",{},"1"),h("span",{},"Toca una o varias tarjetas y luego toca una categoría, o usa el botón Mover a. En computador también puedes arrastrarlas.")),
+        h("li",{},h("b",{},"2"),h("span",{},"Crea las categorías que necesites y nómbralas con tus palabras.")),
+        h("li",{},h("b",{},"3"),h("span",{},"Si no conoces una tarjeta, déjala en “No conozco este concepto”."))),
+      h("p",{class:"muted"},"Calcula entre 45 y 60 minutos. Tu avance se guarda solo, así que puedes pausar y volver desde este mismo equipo. No te pedimos tu nombre.")),
+    form));
+}
+function field(name,lab,opts){return h("div",{class:"field"},h("label",{htmlFor:name},lab),h("select",{id:name,name,required:true},opts.map(([v,t])=>h("option",{value:v},t))))}
+
+function cardEl(id,from){
+  return h("button",{class:"tcard",type:"button","data-id":id,"data-from":from,"aria-pressed":String(selected.has(id)),onclick(e){if(dragJustEnded)return;toggle(id,e)},onpointerdown:dragStart},label(id));
+}
+function toggle(id){selected.has(id)?selected.delete(id):selected.add(id);render()}
+function move(ids,target){
+  /* target: "deck" | UNKNOWN | pile id */
+  snapshot();
+  const set=new Set(ids);
+  S.deck=S.deck.filter(c=>!set.has(c));S.unknown=S.unknown.filter(c=>!set.has(c));S.piles.forEach(g=>g.cards=g.cards.filter(c=>!set.has(c)));
+  if(target==="deck")S.deck.unshift(...ids);
+  else if(target===UNKNOWN)S.unknown.push(...ids);
+  else S.piles.find(g=>g.id===target).cards.push(...ids);
+  selected.clear();changed();render();
+}
+function newPile(ids,focus=true){
+  snapshot();
+  const g={id:"g"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:"",cards:[]};
+  S.piles.push(g);
+  if(ids&&ids.length){const set=new Set(ids);S.deck=S.deck.filter(c=>!set.has(c));S.unknown=S.unknown.filter(c=>!set.has(c));S.piles.forEach(p=>{if(p!==g)p.cards=p.cards.filter(c=>!set.has(c))});g.cards.push(...ids)}
+  selected.clear();changed();render();
+  if(focus){const i=document.getElementById("name-"+g.id);if(i){i.focus();i.scrollIntoView({block:"nearest"})}}
+  return g;
+}
+function deletePile(g){snapshot();S.deck.unshift(...g.cards);S.piles=S.piles.filter(p=>p!==g);changed();render()}
+function undo(){const s=undoStack.pop();if(!s)return;Object.assign(S,JSON.parse(s));selected.clear();changed();render()}
+
+function viewBoard(){
+  app.replaceChildren(
+    h("header",{class:"top",id:"top"},
+      h("span",{class:"name"},"Card Sorting One Touch"),
+      h("div",{class:"progress"},h("span",{class:"mono",id:"pcount"}),h("div",{class:"bar",role:"progressbar",id:"pbar","aria-label":"Tarjetas ordenadas","aria-valuemin":"0","aria-valuemax":String(CARDS.length)},h("i",{id:"pfill"}))),
+      h("span",{class:"saved",id:"saved","aria-live":"polite"}),
+      h("button",{class:"btn small",type:"button",id:"undo",onclick:undo},"Deshacer"),
+      h("button",{class:"btn small",type:"button",onclick:openResume},"Seguir en otro equipo"),
+      h("button",{class:"btn small primary",type:"button",id:"finish",onclick:openFinish},"Terminar")),
+    h("div",{class:"table"},
+      h("section",{class:"deck","aria-label":"Tarjetas por ordenar","data-drop":"deck"},
+        h("h2",{style:"font-size:1.05rem"},"Por ordenar"),
+        h("input",{type:"search",id:"search",placeholder:"Buscar tarjeta","aria-label":"Buscar tarjeta",value:query,oninput(e){query=e.target.value;renderDeck()}}),
+        h("div",{class:"deck-list",id:"decklist"})),
+      h("section",{class:"board","aria-label":"Categorías",id:"board"})),
+    h("div",{class:"actionbar",id:"actionbar",hidden:true}));
+  const t=document.getElementById("top");document.documentElement.style.setProperty("--head",matchMedia("(max-width:800px)").matches?"0px":t.offsetHeight+"px");
+  render();
+}
+function renderDeck(){
+  const q=norm(query),list=document.getElementById("decklist");if(!list)return;
+  const ids=S.deck.filter(id=>!q||norm(label(id)).includes(q));
+  list.replaceChildren(...(ids.length?ids.map(id=>cardEl(id,"deck")):[h("p",{class:"empty"},S.deck.length?"Ninguna tarjeta coincide con tu búsqueda.":"Ordenaste todas las tarjetas. Revisa tus categorías y toca Terminar.")]));
+}
+function render(){
+  const total=CARDS.length,done=total-S.deck.length;
+  document.getElementById("pcount").textContent=done+"/"+total;
+  document.getElementById("pfill").style.width=(done/total*100)+"%";
+  document.getElementById("pbar").setAttribute("aria-valuenow",done);
+  document.getElementById("undo").disabled=!undoStack.length;
+  renderDeck();
+  const active=document.activeElement&&document.activeElement.id;
+  const pos=active&&active.startsWith("name-")?document.activeElement.selectionStart:null;
+  const piles=S.piles.map(g=>h("article",{class:"pile","data-drop":g.id,onclick(e){pileClick(e,g.id)}},
+    h("div",{class:"pile-head"},
+      h("input",{type:"text",id:"name-"+g.id,maxLength:60,placeholder:"Nombra esta categoría","aria-label":"Nombre de la categoría",value:g.name,oninput(e){g.name=e.target.value;changed();refreshFinish()}}),
+      h("span",{class:"count mono"},g.cards.length),
+      h("button",{class:"icon",type:"button","aria-label":"Eliminar categoría y devolver sus tarjetas",title:"Eliminar categoría",onclick(){deletePile(g)}},"✕")),
+    h("div",{class:"pile-cards"},g.cards.map(id=>cardEl(id,g.id))),
+    !g.cards.length?h("p",{class:"drop-hint"},selected.size?"Toca aquí para mover las seleccionadas":"Mueve tarjetas aquí"):null));
+  document.getElementById("board").replaceChildren(
+    h("article",{class:"unknown","data-drop":UNKNOWN,onclick(e){pileClick(e,UNKNOWN)}},
+      h("div",{class:"pile-head"},h("h3",{style:"margin-right:auto"},"No conozco este concepto"),h("span",{class:"count mono"},S.unknown.length)),
+      h("div",{class:"pile-cards"},S.unknown.map(id=>cardEl(id,UNKNOWN)))),
+    h("div",{class:"piles"},piles,h("button",{class:"newpile",type:"button","data-drop":"new",onclick(){newPile(selected.size?[...selected]:null)}},"+ Nueva categoría")));
+  if(active&&active.startsWith("name-")){const i=document.getElementById(active);if(i){i.focus();if(pos!=null)i.setSelectionRange(pos,pos)}}
+  const bar=document.getElementById("actionbar");
+  bar.hidden=!selected.size;
+  if(selected.size)bar.replaceChildren(
+    h("span",{},selected.size===1?"1 tarjeta seleccionada":selected.size+" tarjetas seleccionadas"),
+    h("button",{class:"btn small primary",type:"button",onclick:openMove},"Mover a…"),
+    h("button",{class:"btn small",type:"button",onclick(){selected.clear();render()}},"Quitar selección"));
+  refreshFinish();
+}
+function pileClick(e,id){if(selected.size&&!e.target.closest("button,input"))move([...selected],id)}
+function finishProblem(){
+  if(S.deck.length)return`Faltan ${S.deck.length} tarjetas por ordenar.`;
+  if(S.piles.length<2)return"Crea al menos dos categorías.";
+  if(S.piles.some(g=>!g.name.trim()))return"Falta nombrar una categoría.";
+  if(S.piles.some(g=>!g.cards.length))return"Hay una categoría vacía. Elimínala o mueve tarjetas a ella.";
+  return"";
+}
+function refreshFinish(){const b=document.getElementById("finish");if(b)b.title=finishProblem()}
+function openMove(){
+  const ids=[...selected];
+  const input=h("input",{type:"text",id:"newname",maxLength:60,placeholder:"Nombre de la nueva categoría","aria-label":"Nombre de la nueva categoría"});
+  dlg.replaceChildren(h("form",{class:"dlg",method:"dialog"},
+    h("h2",{},"Mover "+(ids.length===1?"1 tarjeta":ids.length+" tarjetas")),
+    h("div",{class:"movelist"},
+      S.piles.map(g=>h("button",{class:"btn",type:"button",onclick(){dlg.close();move(ids,g.id)}},(g.name||"Categoría sin nombre")+" ("+g.cards.length+")")),
+      h("button",{class:"btn",type:"button",onclick(){dlg.close();move(ids,UNKNOWN)}},"No conozco este concepto"),
+      h("button",{class:"btn",type:"button",onclick(){dlg.close();move(ids,"deck")}},"Devolver a Por ordenar")),
+    h("div",{class:"row"},h("div",{style:"flex:1;min-width:180px"},input),h("button",{class:"btn primary",type:"button",onclick(){const n=input.value.trim();dlg.close();const g=newPile(ids,!n);if(n){g.name=n;changed();render()}}},"Crear")),
+    h("div",{class:"row end"},h("button",{class:"btn",type:"button",onclick(){dlg.close()}},"Cancelar"))));
+  dlg.showModal();
+}
+function openResume(){
+  const url=location.href.split("#")[0]+"#s-"+S.id;
+  const msg=h("p",{class:"muted"},"Este enlace es solo tuyo. Abre con él este mismo card sorting en otro equipo.");
+  const inp=h("input",{type:"text",id:"resume-url",readOnly:true,value:url,"aria-label":"Enlace para continuar"});
+  dirty=true;pushSave();
+  dlg.replaceChildren(h("div",{class:"dlg"},h("h2",{},"Seguir en otro equipo"),msg,inp,
+    h("div",{class:"row end"},
+      h("button",{class:"btn",type:"button",onclick(){dlg.close()}},"Cerrar"),
+      h("button",{class:"btn primary",type:"button",onclick(e){const b=e.target;navigator.clipboard.writeText(url).then(()=>{b.textContent="Enlace copiado"},()=>{inp.select()})}},"Copiar enlace"))));
+  dlg.showModal();
+}
+function openFinish(){
+  const prob=finishProblem();
+  if(prob){dlg.replaceChildren(h("div",{class:"dlg"},h("h2",{},"Aún falta un paso"),h("p",{},prob),h("div",{class:"row end"},h("button",{class:"btn primary",type:"button",onclick(){dlg.close()}},"Seguir ordenando"))));dlg.showModal();return}
+  const ta=h("textarea",{id:"comentario",maxLength:2000,placeholder:"¿Alguna tarjeta te costó ubicar? ¿Algo que quieras contarnos?"});
+  const err=h("p",{class:"err",hidden:true,role:"alert"});
+  const send=h("button",{class:"btn primary",type:"button",async onclick(){
+    send.disabled=true;send.textContent="Enviando…";err.hidden=true;
+    try{clearTimeout(saveTimer);await rpc("guardar_respuesta",payload(true,ta.value.trim()));S.done=true;persist();dlg.close();viewDone()}
+    catch{err.textContent="No pudimos enviar tus respuestas. Revisa tu conexión e inténtalo de nuevo; nada se perdió.";err.hidden=false;send.disabled=false;send.textContent="Enviar respuestas"}
+  }},"Enviar respuestas");
+  dlg.replaceChildren(h("div",{class:"dlg"},h("h2",{},"Enviar tus respuestas"),
+    h("p",{},`Creaste ${S.piles.length} categorías y marcaste ${S.unknown.length} tarjetas como desconocidas. Después de enviar ya no podrás cambiarlas.`),
+    h("div",{class:"field"},h("label",{htmlFor:"comentario"},"Comentario (opcional)"),ta),err,
+    h("div",{class:"row end"},h("button",{class:"btn",type:"button",onclick(){dlg.close()}},"Seguir revisando"),send)));
+  dlg.showModal();
+}
+function viewDone(){
+  app.replaceChildren(h("div",{class:"done"},h("h1",{},"¡Gracias!"),h("p",{},"Tus respuestas quedaron guardadas. Nos ayudarán a ordenar One Touch."),
+    h("p",{class:"muted"},"¿Este equipo es compartido? ",h("button",{class:"link",type:"button",onclick(){store.clear();S=null;viewIntro()}},"Dejarlo listo para otra persona"))));
+}
+
+/* arrastre con mouse. En pantallas táctiles se usa tocar y Mover a… */
+let drag=null,dragJustEnded=false;
+function dragStart(e){
+  if(e.pointerType!=="mouse"&&e.pointerType!=="pen")return;
+  if(e.button!==0)return;
+  drag={id:e.currentTarget.dataset.id,x:e.clientX,y:e.clientY,active:false,ghost:null,over:null,ids:null};
+  addEventListener("pointermove",dragMove);addEventListener("pointerup",dragEnd,{once:true});
+}
+function dragMove(e){
+  if(!drag)return;
+  if(!drag.active){
+    if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<6)return;
+    drag.active=true;
+    drag.ids=selected.has(drag.id)?[...selected]:[drag.id];
+    drag.ghost=h("div",{class:"tcard ghost"},label(drag.id),drag.ids.length>1?h("em",{},drag.ids.length):null);
+    document.body.append(drag.ghost);
+    drag.ids.forEach(id=>{const n=document.querySelector(`.tcard[data-id="${id}"]`);if(n)n.classList.add("ghosted")});
+  }
+  drag.ghost.style.left=e.clientX+"px";drag.ghost.style.top=e.clientY+"px";
+  const t=document.elementFromPoint(e.clientX,e.clientY),zone=t&&t.closest("[data-drop]");
+  if(zone!==drag.over){if(drag.over)drag.over.classList.remove("is-over");if(zone)zone.classList.add("is-over");drag.over=zone}
+  const m=70,v=e.clientY<m?-14:e.clientY>innerHeight-m?14:0;if(v)scrollBy(0,v);
+}
+function dragEnd(){
+  removeEventListener("pointermove",dragMove);
+  const d=drag;drag=null;if(!d||!d.active)return;
+  d.ghost.remove();if(d.over)d.over.classList.remove("is-over");
+  document.querySelectorAll(".ghosted").forEach(n=>n.classList.remove("ghosted"));
+  dragJustEnded=true;setTimeout(()=>dragJustEnded=false,50);
+  if(!d.over)return;
+  const z=d.over.dataset.drop;
+  if(z==="new")newPile(d.ids);else move(d.ids,z);
+}
+
+/* ---------- Resultados ---------- */
+const R={rows:[],key:"",pais:"",canal:"",parciales:false,tab:"grupos",cut:.5,data:null,del:null};
+function viewLock(msg){
+  const inp=h("input",{type:"password",id:"clave",autocomplete:"off",required:true});
+  const form=h("form",{class:"panel",onsubmit(e){e.preventDefault();loadResults(inp.value.trim(),form)}},
+    h("h1",{style:"font-size:1.8rem"},"Resultados"),
+    h("div",{class:"field"},h("label",{htmlFor:"clave"},"Clave de resultados"),inp),
+    msg?h("p",{class:"err",role:"alert"},msg):null,
+    h("button",{class:"btn primary",type:"submit"},"Ver resultados"));
+  app.replaceChildren(h("div",{class:"res"},h("div",{class:"lock"},form)));
+}
+async function loadResults(key,form){
+  if(form){const b=form.querySelector("button");b.disabled=true;b.textContent="Cargando…"}
+  try{const rows=await rpc("resultados",{p_clave:key});R.rows=rows||[];R.key=key;try{sessionStorage.setItem("csot:k",key)}catch{}R.data=null;viewResults()}
+  catch(e){viewLock(e.status&&e.status<500?"La clave no es correcta.":"No pudimos conectar. Inténtalo de nuevo.")}
+}
+function filtered(){return R.rows.filter(r=>(R.parciales||r.completado)&&(!R.pais||r.pais===R.pais)&&(!R.canal||r.canal===R.canal))}
+function analyze(rows){
+  const n=CARDS.length,idx=Object.fromEntries(CARDS.map((c,i)=>[c.id,i]));
+  const tog=new Float64Array(n*n),both=new Float64Array(n*n),unk=new Float64Array(n),seen=new Float64Array(n);
+  const cats=new Map(),perCard=CARDS.map(()=>new Map());
+  for(const r of rows){
+    const gs=(r.grupos||[]);const placed=[];
+    for(const g of gs){
+      const ids=(g.c||[]).map(c=>idx[c]).filter(i=>i!=null);
+      if(g.n===UNKNOWN){ids.forEach(i=>{unk[i]++;seen[i]++});continue}
+      const name=norm(g.n)||"(sin nombre)";
+      if(!cats.has(name))cats.set(name,{name:g.n||"(sin nombre)",people:0,cards:new Map()});
+      const ct=cats.get(name);ct.people++;
+      for(const i of ids){seen[i]++;ct.cards.set(i,(ct.cards.get(i)||0)+1);const m=perCard[i];const e=m.get(name)||{name:g.n,count:0};e.count++;m.set(name,e)}
+      for(let a=0;a<ids.length;a++)for(let b=a+1;b<ids.length;b++){tog[ids[a]*n+ids[b]]++;tog[ids[b]*n+ids[a]]++}
+      placed.push(...ids);
+    }
+    for(let a=0;a<placed.length;a++)for(let b=a+1;b<placed.length;b++){both[placed[a]*n+placed[b]]++;both[placed[b]*n+placed[a]]++}
+  }
+  const sim=new Float64Array(n*n);for(let i=0;i<n*n;i++)sim[i]=both[i]?tog[i]/both[i]:0;
+  /* enlace promedio */
+  const D=new Float64Array(n*n);for(let i=0;i<n*n;i++)D[i]=1-sim[i];
+  const alive=Array.from({length:n},(_,i)=>i),size=new Array(n).fill(1),node=Array.from({length:n},(_,i)=>({leaf:i}));const merges=[];
+  while(alive.length>1){
+    let best=Infinity,x=-1,y=-1;
+    for(let a=0;a<alive.length;a++)for(let b=a+1;b<alive.length;b++){const d=D[alive[a]*n+alive[b]];if(d<best){best=d;x=a;y=b}}
+    const i=alive[x],j=alive[y];merges.push({i,j,sim:1-best});
+    node[i]={l:node[i],r:node[j]};
+    for(const k of alive){if(k===i||k===j)continue;const d=(D[i*n+k]*size[i]+D[j*n+k]*size[j])/(size[i]+size[j]);D[i*n+k]=d;D[k*n+i]=d}
+    size[i]+=size[j];alive.splice(y,1);
+  }
+  const order=[];(function walk(t){const st=[t];while(st.length){const c=st.pop();if(c.leaf!=null)order.push(c.leaf);else{st.push(c.r);st.push(c.l)}}})(node[alive[0]]);
+  return{n,sim,both,unk,seen,cats,perCard,merges,order};
+}
+function cutClusters(d,t){
+  const p=Array.from({length:d.n},(_,i)=>i),find=x=>{while(p[x]!==x)x=p[x]=p[p[x]];return x};
+  for(const m of d.merges)if(m.sim>=t&&m.sim>0)p[find(m.j)]=find(m.i);
+  const g=new Map();for(const i of d.order){const r=find(i);if(!g.has(r))g.set(r,[]);g.get(r).push(i)}
+  return[...g.values()].sort((a,b)=>b.length-a.length);
+}
+function viewResults(){
+  const rows=filtered();R.data=rows.length?analyze(rows):null;
+  const all=R.rows,comp=all.filter(r=>r.completado);
+  const canales=[...new Set(all.map(r=>r.canal))].sort();
+  const stats=h("div",{class:"stats"},
+    stat(comp.length,"respuestas completas"),stat(all.length-comp.length,"en curso"),
+    stat(rows.length?Math.round(median(rows.map(r=>r.segundos))/60)+" min":"–","mediana de tiempo"),
+    stat(rows.length?median(rows.map(r=>(r.grupos||[]).filter(g=>g.n!==UNKNOWN).length)):"–","mediana de categorías"));
+  const filters=h("div",{class:"filters"},
+    selectF("f-pais","País",[["","Todos"],["Chile","Chile"],["Perú","Perú"],["Otro","Otro"]],R.pais,v=>{R.pais=v;viewResults()}),
+    selectF("f-canal","Canal",[["","Todos"],...canales.map(c=>[c,c])],R.canal,v=>{R.canal=v;viewResults()}),
+    h("label",{class:"check"},h("input",{type:"checkbox",id:"f-parc",checked:R.parciales,onchange(e){R.parciales=e.target.checked;viewResults()}}),"Incluir respuestas en curso"),
+    h("button",{class:"btn small",type:"button",onclick(){loadResults(R.key)}},"Actualizar"),
+    h("button",{class:"btn small",type:"button",onclick:exportLong,disabled:!rows.length},"Descargar respuestas (CSV)"),
+    h("button",{class:"btn small",type:"button",onclick:exportSim,disabled:!rows.length},"Descargar similitud (CSV)"));
+  const tabs=[["grupos","Agrupaciones"],["sim","Similitud"],["cats","Categorías"],["cards","Tarjetas"],["people","Participantes"]];
+  const tabbar=h("div",{class:"tabs",role:"tablist"},tabs.map(([k,t])=>h("button",{type:"button",role:"tab","aria-selected":String(R.tab===k),onclick(){R.tab=k;viewResults()}},t)));
+  const body=h("div",{id:"tabbody"});
+  app.replaceChildren(h("div",{class:"res"},h("h1",{style:"font-size:2rem"},"Resultados del card sorting"),stats,filters,tabbar,body));
+  if(R.tab==="people")body.append(tabPeople(rows));
+  else if(!R.data)body.append(h("p",{class:"empty"},"Todavía no hay respuestas con estos filtros. Comparte el enlace con los participantes y vuelve a actualizar."));
+  else if(R.tab==="grupos")tabGroups(body);
+  else if(R.tab==="sim")tabSim(body);
+  else if(R.tab==="cats")tabCats(body,rows);
+  else tabCards(body,rows);
+}
+const stat=(v,l)=>h("div",{class:"stat"},h("b",{},v),h("span",{},l));
+function selectF(id,lab,opts,val,fn){return h("div",{class:"field"},h("label",{htmlFor:id},lab),h("select",{id,onchange(e){fn(e.target.value)}},opts.map(([v,t])=>h("option",{value:v,selected:v===val},t))))}
+function tabGroups(body){
+  const d=R.data;
+  const out=h("div",{class:"clusters"}),lbl=h("span",{class:"mono"});
+  function draw(){
+    const cs=cutClusters(d,R.cut),multi=cs.filter(c=>c.length>1),single=cs.filter(c=>c.length===1);
+    lbl.textContent=pct(R.cut)+" · "+multi.length+" grupos";
+    out.replaceChildren(...multi.map(c=>{
+      const votes=new Map();c.forEach(i=>d.perCard[i].forEach((e,k)=>{const v=votes.get(k)||{name:e.name,count:0};v.count+=e.count;votes.set(k,v)}));
+      const top=[...votes.values()].sort((a,b)=>b.count-a.count)[0];
+      return h("article",{class:"cluster"},h("h3",{},top?top.name:"Sin nombre"),h("p",{class:"muted",style:"font-size:.85rem"},c.length+" tarjetas · nombre más usado"),h("ul",{},c.map(i=>h("li",{},CARDS[i].l))));
+    }),...(single.length?[h("article",{class:"cluster"},h("h3",{},"Sin grupo claro"),h("p",{class:"muted",style:"font-size:.85rem"},single.length+" tarjetas"),h("ul",{},single.map(c=>h("li",{},CARDS[c[0]].l))))]:[]));
+  }
+  body.append(h("div",{style:"display:grid;gap:12px"},
+    h("p",{class:"note"},"Grupos calculados con agrupamiento jerárquico. Dos tarjetas quedan juntas cuando un porcentaje suficiente de personas las puso en la misma categoría. Súbelo para exigir más acuerdo."),
+    h("div",{class:"slider"},h("label",{htmlFor:"cut",class:"label"},"Acuerdo mínimo"),h("input",{type:"range",id:"cut",min:"10",max:"100",step:"5",value:String(Math.round(R.cut*100)),oninput(e){R.cut=+e.target.value/100;draw()}}),lbl),out));
+  draw();
+}
+function tabSim(body){
+  const d=R.data,n=d.n,cell=Math.max(5,Math.min(9,Math.floor((Math.min(innerWidth,1240)-60)/n)));
+  const c=h("canvas",{width:n*cell,height:n*cell,role:"img","aria-label":"Matriz de similitud entre tarjetas. La tabla inferior lista los pares más fuertes."});
+  const tip=h("div",{class:"tip",hidden:true});
+  const cs=getComputedStyle(document.documentElement);const ctx=c.getContext("2d");
+  ctx.fillStyle=cs.getPropertyValue("--surface");ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle=cs.getPropertyValue("--accent");
+  d.order.forEach((a,y)=>d.order.forEach((b,x)=>{const v=a===b?1:d.sim[a*n+b];if(v>0){ctx.globalAlpha=v;ctx.fillRect(x*cell,y*cell,cell,cell)}}));ctx.globalAlpha=1;
+  c.addEventListener("pointermove",e=>{const r=c.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)/cell),y=Math.floor((e.clientY-r.top)/cell);const a=d.order[y],b=d.order[x];if(a==null||b==null)return;tip.hidden=false;tip.textContent=`${CARDS[a].l} + ${CARDS[b].l}: ${a===b?"–":pct(d.sim[a*n+b])}`;tip.style.left=Math.min(e.clientX+12,innerWidth-330)+"px";tip.style.top=e.clientY+14+"px"});
+  c.addEventListener("pointerleave",()=>tip.hidden=true);
+  const pairs=[];for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)if(d.both[i*n+j])pairs.push([i,j,d.sim[i*n+j],d.both[i*n+j]]);
+  pairs.sort((a,b)=>b[2]-a[2]||b[3]-a[3]);
+  body.append(h("div",{style:"display:grid;gap:12px"},h("p",{class:"note"},"Cada celda es el porcentaje de personas que puso ese par de tarjetas en la misma categoría. Más intenso significa más acuerdo. Pasa el cursor para ver el par."),
+    h("div",{class:"heatwrap"},c),tip,h("h2",{},"Pares con más acuerdo"),
+    h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Tarjeta"),h("th",{},"Tarjeta"),h("th",{class:"num"},"Acuerdo"))),h("tbody",{},pairs.slice(0,30).map(p=>h("tr",{},h("td",{},CARDS[p[0]].l),h("td",{},CARDS[p[1]].l),h("td",{class:"num"},pct(p[2])))))))));
+}
+function tabCats(body,rows){
+  const list=[...R.data.cats.values()].sort((a,b)=>b.people-a.people);
+  body.append(h("div",{style:"display:grid;gap:12px"},h("p",{class:"note"},"Nombres de categoría unidos solo si coinciden al ignorar mayúsculas y tildes. Sinónimos como “Ventas” y “Venta nueva” aparecen por separado."),
+    h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Categoría"),h("th",{class:"num"},"Personas"),h("th",{class:"num"},"Tarjetas"),h("th",{},"Tarjetas más frecuentes"))),
+    h("tbody",{},list.map(c=>{const top=[...c.cards.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5).map(([i,k])=>`${CARDS[i].l} (${k})`).join(" · ");return h("tr",{},h("td",{},c.name),h("td",{class:"num"},c.people),h("td",{class:"num"},c.cards.size),h("td",{},top))}))))));
+}
+function tabCards(body,rows){
+  const d=R.data,tb=h("tbody");
+  const data=CARDS.map((c,i)=>{const tops=[...d.perCard[i].values()].sort((a,b)=>b.count-a.count);const total=tops.reduce((s,e)=>s+e.count,0);let best=-1,bv=0;for(let j=0;j<d.n;j++)if(j!==i&&d.sim[i*d.n+j]>bv){bv=d.sim[i*d.n+j];best=j}
+    return{c,i,top:tops[0],topShare:tops[0]&&total?tops[0].count/total:0,unk:d.seen[i]?d.unk[i]/d.seen[i]:0,best,bv}});
+  function draw(q){const nq=norm(q);tb.replaceChildren(...data.filter(x=>!nq||norm(x.c.l).includes(nq)).sort((a,b)=>b.unk-a.unk||a.topShare-b.topShare).map(x=>h("tr",{},h("td",{},x.c.l,h("div",{class:"muted",style:"font-size:.8rem"},x.c.o.join(" | "))),h("td",{},x.top?x.top.name:"–"),h("td",{class:"num"},pct(x.topShare)),h("td",{class:"num"},pct(x.unk)),h("td",{},x.best>=0?`${CARDS[x.best].l} (${pct(x.bv)})`:"–"))))}
+  body.append(h("div",{style:"display:grid;gap:12px"},h("div",{class:"field",style:"max-width:340px"},h("label",{htmlFor:"csearch"},"Buscar tarjeta"),h("input",{type:"search",id:"csearch",oninput(e){draw(e.target.value)}})),
+    h("p",{class:"note"},"Primero aparecen las tarjetas más desconocidas y las que tienen menos acuerdo. Son las que más conviene revisar."),
+    h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Tarjeta"),h("th",{},"Categoría más usada"),h("th",{class:"num"},"Acuerdo"),h("th",{class:"num"},"No conocida"),h("th",{},"Tarjeta más cercana"))),tb))));
+  draw("");
+}
+function tabPeople(rows){
+  const list=rows.slice().reverse();
+  if(!list.length)return h("p",{class:"empty"},"Todavía no hay respuestas con estos filtros.");
+  return h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Fecha"),h("th",{},"País"),h("th",{},"Canal"),h("th",{},"Uso de OT"),h("th",{},"Estado"),h("th",{class:"num"},"Categorías"),h("th",{class:"num"},"Min"),h("th",{},"Comentario"),h("th",{}))),
+    h("tbody",{},list.map(r=>h("tr",{},h("td",{class:"mono"},new Date(r.creado).toLocaleDateString("es-CL")),h("td",{},r.pais),h("td",{},r.canal),h("td",{},r.antiguedad),h("td",{},r.completado?"Completa":`En curso (faltan ${r.sin_ordenar})`),h("td",{class:"num"},(r.grupos||[]).filter(g=>g.n!==UNKNOWN).length),h("td",{class:"num"},Math.round(r.segundos/60)),h("td",{},r.comentario),h("td",{},delBtn(r)))))));
+}
+function delBtn(r){
+  if(R.del!==r.id)return h("button",{class:"btn small",type:"button",onclick(){R.del=r.id;viewResults()}},"Eliminar");
+  return h("button",{class:"btn small danger",type:"button",async onclick(){try{await rpc("eliminar_respuesta",{p_clave:R.key,p_id:r.id});R.del=null;loadResults(R.key)}catch{R.del=null;viewResults()}}},"Confirmar");
+}
+function csvCell(v){v=String(v==null?"":v);if(/^[=+\-@]/.test(v))v="'"+v;return/[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function saveCsv(name,rows){
+  const t="﻿"+rows.map(r=>r.map(csvCell).join(";")).join("\r\n");
+  const a=h("a",{href:URL.createObjectURL(new Blob([t],{type:"text/csv;charset=utf-8"})),download:name});document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+function exportLong(){
+  const out=[["participante","pais","canal","uso_ot","estado","minutos","categoria","tarjeta_id","tarjeta","origen_excel"]];
+  filtered().forEach((r,i)=>{(r.grupos||[]).forEach(g=>(g.c||[]).forEach(id=>{const c=BY_ID[id];if(c)out.push(["P"+(i+1),r.pais,r.canal,r.antiguedad,r.completado?"completa":"en curso",Math.round(r.segundos/60),g.n===UNKNOWN?"No conozco este concepto":g.n,id,c.l,c.o.join(" | ")])}))});
+  saveCsv("card-sorting-ot-respuestas.csv",out);
+}
+function exportSim(){
+  const d=R.data,o=d.order;
+  saveCsv("card-sorting-ot-similitud.csv",[["",...o.map(i=>CARDS[i].l)],...o.map(a=>[CARDS[a].l,...o.map(b=>a===b?"":Math.round(d.sim[a*d.n+b]*100))])]);
+}
+
+/* ---------- arranque ---------- */
+async function boot(){
+  const hash=location.hash;
+  if(hash==="#resultados"){let k=null;try{k=sessionStorage.getItem("csot:k")}catch{}return k?loadResults(k):viewLock()}
+  if(hash.startsWith("#s-")){
+    const id=hash.slice(3);
+    app.replaceChildren(h("p",{class:"empty"},"Recuperando tu avance…"));
+    try{
+      const r=await rpc("cargar_respuesta",{p_id:id});
+      if(!r)throw 0;
+      if(r.completado){S={...(store.get()||{}),done:true};return viewDone()}
+      const known=new Set(),gs=r.grupos||[];
+      const unknown=(gs.find(g=>g.n===UNKNOWN)||{c:[]}).c.filter(c=>BY_ID[c]);unknown.forEach(c=>known.add(c));
+      const piles=gs.filter(g=>g.n!==UNKNOWN).map((g,i)=>{const cards=(g.c||[]).filter(c=>BY_ID[c]);cards.forEach(c=>known.add(c));return{id:"g"+i+Date.now().toString(36),name:g.n||"",cards}});
+      S={id:r.id,perfil:{pais:r.pais,canal:r.canal,antiguedad:r.antiguedad},deck:shuffle(CARDS.map(c=>c.id).filter(c=>!known.has(c))),piles,unknown,seconds:r.segundos||0,done:false};
+      persist();history.replaceState(null,"",location.pathname);return viewBoard();
+    }catch{
+      app.replaceChildren(h("div",{class:"done"},h("h2",{},"No encontramos ese avance"),h("p",{},"Revisa que el enlace esté completo o empieza de nuevo."),h("button",{class:"btn primary",type:"button",onclick(){history.replaceState(null,"",location.pathname);boot()}},"Ir al inicio")));
+      return;
+    }
+  }
+  const saved=store.get();
+  if(saved&&saved.id){S=saved;if(S.done)return viewDone();return viewBoard()}
+  viewIntro();
+}
+addEventListener("hashchange",boot);
+boot();
+</script>
+</body>
+</html>
