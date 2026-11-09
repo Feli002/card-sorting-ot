@@ -79,7 +79,7 @@ textarea{min-height:90px;resize:vertical}
 .deck{position:sticky;top:calc(var(--head) + 12px);max-height:calc(100dvh - var(--head) - 28px);display:flex;flex-direction:column;background:var(--sunken);border-radius:12px;padding:12px;gap:8px;min-width:0}
 .deck-list{overflow:auto;display:flex;flex-direction:column;gap:6px;padding:2px;flex:1;min-height:0}
 .empty{color:var(--muted);padding:12px;text-align:center}
-.tcard{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:.5rem .6rem;box-shadow:var(--shadow);line-height:1.3;font-size:.95rem;font-weight:500;touch-action:manipulation;user-select:none;-webkit-user-select:none;min-height:44px;overflow-wrap:anywhere}
+.tcard{-webkit-touch-callout:none;display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:.5rem .6rem;box-shadow:var(--shadow);line-height:1.3;font-size:.95rem;font-weight:500;touch-action:manipulation;user-select:none;-webkit-user-select:none;min-height:44px;overflow-wrap:anywhere}
 .tcard,.cardwrap{flex:none}
 .tcard:hover{border-color:var(--accent)}
 .tcard[aria-pressed="true"]{background:var(--pick);color:var(--pick-ink);border-color:var(--pick)}
@@ -251,7 +251,7 @@ function viewIntro(){
       h("h1",{},"Ayúdanos a ordenar One Touch"),
       h("p",{},`Tienes ${CARDS.length} tarjetas con funciones y conceptos de la plataforma en Chile. Agrúpalas como tenga sentido para ti. No hay respuestas correctas ni incorrectas.`),
       h("ol",{class:"how"},
-        h("li",{},h("b",{},"1"),h("span",{},"Toca una o varias tarjetas y luego Mover aquí en la categoría. En computador también puedes arrastrarlas.")),
+        h("li",{},h("b",{},"1"),h("span",{},"Toca varias tarjetas para seleccionarlas y arrástralas juntas a una categoría, o usa Mover aquí. En celular, mantén presionada una tarjeta para arrastrar. En computador, Shift + clic selecciona varias seguidas.")),
         h("li",{},h("b",{},"2"),h("span",{},"Partes con Venta, Post Venta, Consulta y Transversales/Estructurales. Puedes cambiarles el nombre y crear otras categorías.")),
         h("li",{},h("b",{},"3"),h("span",{},"Usa Deprecadas/Apagadas para lo que ya no se usa y No conozco este concepto para lo que no reconoces.")),
         h("li",{},h("b",{},"4"),h("span",{},"Si falta algo, crea una tarjeta nueva con una breve descripción."))),
@@ -266,7 +266,16 @@ function cardEl(id,from){
   if(!n)return btn;
   return h("div",{class:"cardwrap"},btn,h("button",{class:"edit",type:"button","aria-label":"Editar tarjeta "+n.n,title:"Editar tarjeta",onclick(){openCard(n)}},"✎"));
 }
-function toggle(id){selected.has(id)?selected.delete(id):selected.add(id);render()}
+let lastPick=null;
+function toggle(id,e){
+  if(e&&e.shiftKey&&lastPick&&lastPick!==id){
+    const box=e.currentTarget.closest(".deck-list,.pile-cards");
+    const ids=box?[...box.querySelectorAll(".tcard")].map(n=>n.dataset.id):[];
+    const a=ids.indexOf(lastPick),b=ids.indexOf(id);
+    if(a>=0&&b>=0){ids.slice(Math.min(a,b),Math.max(a,b)+1).forEach(x=>selected.add(x));lastPick=id;render();return}
+  }
+  selected.has(id)?selected.delete(id):selected.add(id);lastPick=id;render();
+}
 function takeOut(set){S.deck=S.deck.filter(c=>!set.has(c));S.unknown=S.unknown.filter(c=>!set.has(c));S.depre=S.depre.filter(c=>!set.has(c));S.piles.forEach(g=>g.cards=g.cards.filter(c=>!set.has(c)))}
 function move(ids,target){
   /* target: "deck" | UNKNOWN | DEPRE | id de categoría */
@@ -277,7 +286,7 @@ function move(ids,target){
   else if(target===UNKNOWN)S.unknown.push(...ids);
   else if(target===DEPRE)S.depre.push(...ids);
   else S.piles.find(g=>g.id===target).cards.push(...ids);
-  selected.clear();changed();render();
+  selected.clear();lastPick=null;changed();render();
 }
 function newPile(ids,focus=true){
   snapshot();
@@ -351,7 +360,7 @@ function render(){
   const bar=document.getElementById("actionbar");
   bar.hidden=!selected.size;
   if(selected.size)bar.replaceChildren(
-    h("span",{},selected.size===1?"1 tarjeta seleccionada":selected.size+" tarjetas seleccionadas"),
+    h("span",{},(selected.size===1?"1 tarjeta seleccionada":selected.size+" tarjetas seleccionadas")+". Arrastra cualquiera de ellas para moverlas juntas."),
     h("button",{class:"btn small primary",type:"button",onclick:openMove},"Mover a…"),
     h("button",{class:"btn small",type:"button",onclick(){selected.clear();render()}},"Quitar selección"));
   refreshFinish();
@@ -433,39 +442,61 @@ function viewDone(){
     h("p",{class:"muted"},"¿Este equipo es compartido? ",h("button",{class:"link",type:"button",onclick(){store.clear();S=null;viewIntro()}},"Dejarlo listo para otra persona"))));
 }
 
-/* arrastre con mouse. En pantallas táctiles se usa tocar y Mover a… */
+/* arrastre: mouse y lápiz directo; táctil con presión larga. Arrastrar con selección mueve todas las seleccionadas. */
 let drag=null,dragJustEnded=false;
+function beginDrag(x,y){
+  drag.active=true;
+  if(selected.size)selected.add(drag.id);
+  drag.ids=selected.has(drag.id)?[...selected]:[drag.id];
+  drag.ghost=h("div",{class:"tcard ghost"},label(drag.id),drag.ids.length>1?h("em",{},drag.ids.length):null);
+  document.body.append(drag.ghost);
+  drag.ids.forEach(id=>{const n=document.querySelector(`.tcard[data-id="${id}"]`);if(n)n.classList.add("ghosted")});
+  if(navigator.vibrate)try{navigator.vibrate(15)}catch{}
+  follow(x,y);
+}
+function follow(x,y){
+  drag.ghost.style.left=x+"px";drag.ghost.style.top=y+"px";
+  const t=document.elementFromPoint(x,y),zone=t&&t.closest("[data-drop]");
+  if(zone!==drag.over){if(drag.over)drag.over.classList.remove("is-over");if(zone)zone.classList.add("is-over");drag.over=zone}
+  const m=70,v=y<m?-14:y>innerHeight-m?14:0;if(v)scrollBy(0,v);
+}
+function finishDrag(){
+  const d=drag;drag=null;if(!d)return;clearTimeout(d.timer);if(!d.active)return;
+  d.ghost.remove();if(d.over)d.over.classList.remove("is-over");
+  document.querySelectorAll(".ghosted").forEach(n=>n.classList.remove("ghosted"));
+  dragJustEnded=true;setTimeout(()=>dragJustEnded=false,d.touch?400:50);
+  if(!d.over)return;
+  const z=d.over.dataset.drop;
+  if(z==="new")newPile(d.ids);else move(d.ids,z);
+}
 function dragStart(e){
-  if(e.pointerType!=="mouse"&&e.pointerType!=="pen")return;
+  if(e.pointerType==="touch")return;
   if(e.button!==0)return;
   drag={id:e.currentTarget.dataset.id,x:e.clientX,y:e.clientY,active:false,ghost:null,over:null,ids:null};
   addEventListener("pointermove",dragMove);addEventListener("pointerup",dragEnd,{once:true});
 }
 function dragMove(e){
   if(!drag)return;
-  if(!drag.active){
-    if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<6)return;
-    drag.active=true;
-    drag.ids=selected.has(drag.id)?[...selected]:[drag.id];
-    drag.ghost=h("div",{class:"tcard ghost"},label(drag.id),drag.ids.length>1?h("em",{},drag.ids.length):null);
-    document.body.append(drag.ghost);
-    drag.ids.forEach(id=>{const n=document.querySelector(`.tcard[data-id="${id}"]`);if(n)n.classList.add("ghosted")});
-  }
-  drag.ghost.style.left=e.clientX+"px";drag.ghost.style.top=e.clientY+"px";
-  const t=document.elementFromPoint(e.clientX,e.clientY),zone=t&&t.closest("[data-drop]");
-  if(zone!==drag.over){if(drag.over)drag.over.classList.remove("is-over");if(zone)zone.classList.add("is-over");drag.over=zone}
-  const m=70,v=e.clientY<m?-14:e.clientY>innerHeight-m?14:0;if(v)scrollBy(0,v);
+  if(!drag.active){if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<6)return;beginDrag(e.clientX,e.clientY);return}
+  follow(e.clientX,e.clientY);
 }
-function dragEnd(){
-  removeEventListener("pointermove",dragMove);
-  const d=drag;drag=null;if(!d||!d.active)return;
-  d.ghost.remove();if(d.over)d.over.classList.remove("is-over");
-  document.querySelectorAll(".ghosted").forEach(n=>n.classList.remove("ghosted"));
-  dragJustEnded=true;setTimeout(()=>dragJustEnded=false,50);
-  if(!d.over)return;
-  const z=d.over.dataset.drop;
-  if(z==="new")newPile(d.ids);else move(d.ids,z);
-}
+function dragEnd(){removeEventListener("pointermove",dragMove);finishDrag()}
+document.addEventListener("touchstart",e=>{
+  const card=e.target.closest&&e.target.closest(".tcard[data-id]");
+  if(!card||e.touches.length>1||drag)return;
+  const t=e.touches[0];
+  drag={id:card.dataset.id,x:t.clientX,y:t.clientY,active:false,ghost:null,over:null,ids:null,touch:true};
+  drag.timer=setTimeout(()=>{if(drag&&drag.touch&&!drag.active)beginDrag(drag.x,drag.y)},350);
+},{passive:true});
+document.addEventListener("touchmove",e=>{
+  if(!drag||!drag.touch)return;
+  const t=e.touches[0];
+  if(!drag.active){if(Math.hypot(t.clientX-drag.x,t.clientY-drag.y)>8){clearTimeout(drag.timer);drag=null}return}
+  e.preventDefault();follow(t.clientX,t.clientY);
+},{passive:false});
+document.addEventListener("touchend",e=>{if(drag&&drag.touch){if(drag.active)e.preventDefault();finishDrag()}},{passive:false});
+document.addEventListener("touchcancel",()=>{if(drag&&drag.touch)finishDrag()});
+document.addEventListener("contextmenu",e=>{if(e.target.closest&&e.target.closest(".tcard"))e.preventDefault()});
 
 /* ---------- Resultados ---------- */
 const R={rows:[],key:"",persona:"",parciales:false,tab:"grupos",cut:.5,data:null,del:null};
