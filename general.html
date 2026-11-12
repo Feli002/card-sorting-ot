@@ -42,6 +42,9 @@ button{cursor:pointer}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:.55rem .9rem;font-weight:500;min-height:44px}
 .btn:hover:not(:disabled){border-color:var(--accent)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.create{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700;min-height:44px;font-size:.95rem;box-shadow:0 1px 0 rgba(0,0,0,.08),0 2px 6px color-mix(in srgb,var(--accent) 30%,transparent)}
+.btn.create:hover{filter:brightness(1.1)}
+.btn.create:focus-visible{outline:3px solid var(--pick);outline-offset:2px}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .btn.small{min-height:36px;padding:.3rem .7rem;font-size:.9rem}
 .btn.danger{color:var(--danger);border-color:var(--danger)}
@@ -314,7 +317,7 @@ function viewBoard(){
       h("section",{class:"deck","aria-label":"Tarjetas por ordenar","data-drop":"deck"},
         h("h2",{style:"font-size:1.05rem"},"Por ordenar"),
         h("input",{type:"search",id:"search",placeholder:"Buscar tarjeta","aria-label":"Buscar tarjeta",value:query,oninput(e){query=e.target.value;renderDeck()}}),
-        h("div",{class:"deck-tools"},h("button",{class:"btn small",type:"button",id:"newcard",onclick(){openCard()}},"+ Nueva tarjeta")),
+        h("div",{class:"deck-tools"},h("button",{class:"btn create",type:"button",id:"newcard",onclick(){openCard()}},"+ Crear tarjeta")),
         h("div",{class:"deck-list",id:"decklist"})),
       h("section",{class:"board","aria-label":"Categorías",id:"board"})),
     h("div",{class:"actionbar",id:"actionbar",hidden:true}));
