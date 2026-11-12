@@ -109,9 +109,20 @@ footer a{color:var(--accent)}
     </div>
   </section>
 
+  <section style="display:grid;gap:12px" id="resultados-hub">
+    <span class="step">Resultados por sorting</span>
+    <p class="how">Para el equipo UX. Cada resultado pide la clave de resultados; la ingresas una vez y queda guardada mientras tengas abierta la pestaña.</p>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,175px),1fr))">
+      <article class="card" style="--k:var(--g)"><h3>General</h3><span class="state" data-res="general">Cargando…</span><a class="btn" href="general.html#resultados">Ver resultados</a></article>
+      <article class="card" style="--k:var(--v)"><h3>Ventas</h3><span class="state" data-res="ventas">Cargando…</span><a class="btn" href="ventas.html#resultados">Ver resultados</a></article>
+      <article class="card" style="--k:var(--p)"><h3>Post Venta</h3><span class="state" data-res="postventa">Cargando…</span><a class="btn" href="postventa.html#resultados">Ver resultados</a></article>
+      <article class="card" style="--k:var(--c)"><h3>Consultas</h3><span class="state" data-res="consultas">Cargando…</span><a class="btn" href="consultas.html#resultados">Ver resultados</a></article>
+      <article class="card" style="--k:var(--t)"><h3>Transversales</h3><span class="state" data-res="transversales">Cargando…</span><a class="btn" href="transversales.html#resultados">Ver resultados</a></article>
+    </div>
+  </section>
+
   <footer>
     <p>Tus respuestas se guardan con tu nombre solo para poder consultarte si tenemos dudas.</p>
-    <p>Equipo UX, resultados: <a href="general.html#resultados">General</a> · <a href="ventas.html#resultados">Ventas</a> · <a href="postventa.html#resultados">Post Venta</a> · <a href="consultas.html#resultados">Consultas</a> · <a href="transversales.html#resultados">Transversales</a></p>
   </footer>
 </main>
 <script>
@@ -135,9 +146,11 @@ footer a{color:var(--accent)}
       var st=el("div","pst "+(r.completado?"ok-t":p>0?"mid-t":"zero-t"),r.completado?"✓ Terminó":falta===0?"Falta enviar":p===0?"Sin empezar":"Le faltan "+falta);
       row.append(n,tr,st);list.append(row)});
   }
+  function fillRes(){document.querySelectorAll("[data-res]").forEach(function(e){var rs=data.filter(function(r){return r.ronda===e.dataset.res}),d=rs.filter(function(r){return r.completado}).length;
+    e.textContent=d+(d===1?" respuesta completa":" respuestas completas")+(rs.length-d?" · "+(rs.length-d)+" en curso":"")})}
   function load(){var u=document.getElementById("prog-upd");u.textContent="Actualizando…";
     fetch(URL_SB,{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:"{}"}).then(function(r){if(!r.ok)throw 0;return r.json()})
-      .then(function(j){data=j||[];u.textContent="Actualizado a las "+new Date().toLocaleTimeString("es-CL",{hour:"2-digit",minute:"2-digit"});draw()})
+      .then(function(j){data=j||[];u.textContent="Actualizado a las "+new Date().toLocaleTimeString("es-CL",{hour:"2-digit",minute:"2-digit"});draw();fillRes()})
       .catch(function(){u.textContent="No pudimos cargar el progreso. Revisa tu conexión y toca Actualizar."})}
   document.querySelectorAll("#prog-tabs button").forEach(function(b){b.addEventListener("click",function(){ronda=b.dataset.r;document.querySelectorAll("#prog-tabs button").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});draw()})});
   document.getElementById("prog-refresh").addEventListener("click",load);
