@@ -81,6 +81,10 @@ textarea{min-height:90px;resize:vertical}
 .tcard:hover{border-color:var(--accent)}
 .tcard[aria-pressed="true"]{background:var(--pick);color:var(--pick-ink);border-color:var(--pick)}
 .tcard.ghosted{opacity:.35}
+.tcard.nueva{border:1.5px dashed var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--card))}
+.tcard.nueva::before{content:"Nueva";display:block;font:500 .7rem var(--mono);color:var(--accent);margin-bottom:2px}
+.tcard.nueva[aria-pressed="true"]::before{color:var(--pick-ink)}
+.tcard small{display:block;font-weight:400;font-size:.8rem;opacity:.8;margin-top:2px}
 .ghost{position:fixed;z-index:60;pointer-events:none;width:230px;transform:rotate(-2deg) translate(-20px,-16px);box-shadow:0 10px 24px rgba(0,0,0,.28)}
 .ghost em{position:absolute;right:-8px;top:-10px;background:var(--accent);color:var(--accent-ink);font:500 .78rem var(--mono);border-radius:10px;padding:0 7px}
 .board{display:grid;gap:12px;min-width:0}
@@ -161,12 +165,14 @@ const median=a=>{if(!a.length)return 0;const s=a.slice().sort((x,y)=>x-y),m=s.le
 
 /* ---------- Participante ---------- */
 let S=null,undoStack=[],selected=new Set(),query="",saveState="idle",saveTimer=null,saving=false,dirty=false,lastTick=Date.now(),lastPick=null;
-const label=id=>BY_ID[id]?BY_ID[id].l:id;
+const nueva=id=>((S&&S.nuevas)||[]).find(c=>c.id===id);
+const label=id=>BY_ID[id]?BY_ID[id].l:(nueva(id)||{}).n||id;
+const totalCards=()=>CARDS.length+((S&&S.nuevas)||[]).length;
 function persist(){store.set(S)}
-function snapshot(){undoStack.push(JSON.stringify({deck:S.deck,zones:S.zones}));if(undoStack.length>30)undoStack.shift()}
+function snapshot(){undoStack.push(JSON.stringify({deck:S.deck,zones:S.zones,nuevas:S.nuevas}));if(undoStack.length>30)undoStack.shift()}
 function changed(){persist();dirty=true;clearTimeout(saveTimer);saveTimer=setTimeout(pushSave,3000)}
 function ubicaciones(){const u={};for(const[k,ids]of Object.entries(S.zones))ids.forEach(id=>u[id]=k);return u}
-function payload(done,c){return{p_id:S.id,p_ronda:RONDA,p_nombre:S.nombre,p_ubicaciones:ubicaciones(),p_sin_ordenar:S.deck.length,p_comentario:c||"",p_segundos:Math.round(S.seconds),p_completado:!!done}}
+function payload(done,c){return{p_id:S.id,p_ronda:RONDA,p_nombre:S.nombre,p_ubicaciones:ubicaciones(),p_sin_ordenar:S.deck.length,p_comentario:c||"",p_segundos:Math.round(S.seconds),p_completado:!!done,p_nuevas:S.nuevas||[]}}
 async function pushSave(){if(saving||!dirty)return;saving=true;dirty=false;setSaved("saving");
   try{await rpc("guardar_ronda",payload(false));setSaved("ok")}catch{dirty=true;setSaved("bad");clearTimeout(saveTimer);saveTimer=setTimeout(pushSave,15000)}
   saving=false;if(dirty&&saveState!=="bad"){clearTimeout(saveTimer);saveTimer=setTimeout(pushSave,3000)}}
@@ -177,7 +183,7 @@ addEventListener("pagehide",()=>{if(S&&!S.done){persist();if(dirty){try{fetch(SB
 function viewIntro(){
   const inp=h("input",{type:"text",id:"nombre",maxLength:80,required:true,autocomplete:"name"});
   const start=()=>{const n=inp.value.trim();if(!n){inp.focus();inp.setAttribute("aria-invalid","true");return}
-    S={id:uuid(),nombre:n,deck:shuffle(CARDS.map(c=>c.id)),zones:Object.fromEntries(ZONES.map(z=>[z.key,[]])),seconds:0,done:false};
+    S={id:uuid(),nombre:n,deck:shuffle(CARDS.map(c=>c.id)),zones:Object.fromEntries(ZONES.map(z=>[z.key,[]])),nuevas:[],seconds:0,done:false};
     persist();dirty=true;pushSave();viewBoard()};
   inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();start()}});
   const form=h("div",{class:"panel"},
@@ -198,12 +204,26 @@ function viewIntro(){
         h("li",{},"Elige el mercado: Móvil, Hogar o Ambos."),
         h("li",{},"Dentro del mercado, decide si es Viaje o Funcionalidad."),
         h("li",{},"Selecciona varias tarjetas y arrástralas juntas, o usa Mover aquí. En celular, mantén presionada una tarjeta para arrastrar."),
-        h("li",{},"Si no conoces una tarjeta, déjala en No conozco este concepto.")),
+        h("li",{},"Si no conoces una tarjeta, déjala en No conozco este concepto."),
+        h("li",{},"¿Falta un concepto? Usa + Crear tarjeta y ubícalo como las demás.")),
       h("p",{class:"muted"},"Toma entre 5 y 15 minutos. Tu avance se guarda solo.")),
     form));
 }
 
-function cardEl(id){return h("button",{class:"tcard",type:"button","data-id":id,"aria-pressed":String(selected.has(id)),onclick(e){if(dragJustEnded)return;toggle(id,e)},onpointerdown:dragStart},label(id))}
+function cardEl(id){const nv=nueva(id);return h("button",{class:"tcard"+(nv?" nueva":""),type:"button","data-id":id,"aria-pressed":String(selected.has(id)),title:nv&&nv.d?nv.d:null,onclick(e){if(dragJustEnded)return;toggle(id,e)},onpointerdown:dragStart},label(id),nv&&nv.d?h("small",{},nv.d):null)}
+function openCardForm(card){const editing=!!card,err=h("p",{class:"err",hidden:true,role:"alert"});
+  const n=h("input",{type:"text",id:"nc-n",maxLength:80,value:card?card.n:""}),d=h("textarea",{id:"nc-d",maxLength:240,placeholder:"Qué es o para qué se usa, en una o dos líneas"});d.value=card?card.d||"":"";
+  const save=()=>{const nn=n.value.trim(),dd=d.value.trim();if(!nn){err.textContent="Escribe un nombre para la tarjeta.";err.hidden=false;n.focus();return}
+    const dup=[...CARDS.map(c=>c.l),...S.nuevas.filter(c=>!card||c.id!==card.id).map(c=>c.n)].some(x=>norm(x)===norm(nn));if(dup){err.textContent="Ya existe una tarjeta con ese nombre.";err.hidden=false;n.focus();return}
+    snapshot();if(editing){card.n=nn;card.d=dd}else{const id="n"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);S.nuevas.push({id,n:nn,d:dd});S.deck.unshift(id);query=""}
+    dlg.close();changed();render()};
+  n.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();save()}});
+  dlg.replaceChildren(h("div",{class:"dlg"},h("h2",{},editing?"Editar tarjeta":"Crear tarjeta"),
+    editing?null:h("p",{class:"muted"},"¿Falta un concepto en esta área? Créalo y ubícalo como cualquier otra tarjeta. Quedará en Por ordenar."),
+    h("div",{class:"field"},h("label",{htmlFor:"nc-n"},"Nombre"),n),h("div",{class:"field"},h("label",{htmlFor:"nc-d"},"Descripción breve (opcional)"),d),err,
+    h("div",{class:"row end"},editing?h("button",{class:"btn danger",type:"button",style:"margin-right:auto",onclick(){snapshot();const id=card.id;S.deck=S.deck.filter(c=>c!==id);for(const k in S.zones)S.zones[k]=S.zones[k].filter(c=>c!==id);S.nuevas=S.nuevas.filter(c=>c.id!==id);selected.delete(id);dlg.close();changed();render()}},"Eliminar tarjeta"):null,
+      h("button",{class:"btn",type:"button",onclick(){dlg.close()}},"Cancelar"),h("button",{class:"btn primary",type:"button",onclick:save},editing?"Guardar":"Crear tarjeta"))));
+  dlg.showModal();n.focus()}
 function toggle(id,e){
   if(e&&e.shiftKey&&lastPick&&lastPick!==id){const box=e.currentTarget.closest(".deck-list,.cards");const ids=box?[...box.querySelectorAll(".tcard")].map(n=>n.dataset.id):[];const a=ids.indexOf(lastPick),b=ids.indexOf(id);if(a>=0&&b>=0){ids.slice(Math.min(a,b),Math.max(a,b)+1).forEach(x=>selected.add(x));lastPick=id;render();return}}
   selected.has(id)?selected.delete(id):selected.add(id);lastPick=id;render();
@@ -223,6 +243,7 @@ function viewBoard(){
     h("div",{class:"table"},
       h("section",{class:"deck","aria-label":"Tarjetas por ordenar","data-drop":"deck"},h("h2",{style:"font-size:1.05rem"},"Por ordenar"),
         h("input",{type:"search",id:"search",placeholder:"Buscar tarjeta","aria-label":"Buscar tarjeta",value:query,oninput(e){query=e.target.value;renderDeck()}}),
+        h("button",{class:"btn small",type:"button",id:"crear",onclick(){openCardForm(null)}},"+ Crear tarjeta"),
         h("div",{class:"deck-list",id:"decklist"})),
       h("section",{class:"board",id:"board","aria-label":"Mercados"})),
     h("div",{class:"actionbar",id:"actionbar",hidden:true}));
@@ -240,7 +261,7 @@ function zoneEl(z,title,small){
     !list.length&&!selected.size?h("p",{class:"hint"},"Mueve tarjetas aquí"):null);
 }
 function render(){
-  const total=CARDS.length,done=total-S.deck.length;
+  const total=totalCards(),done=total-S.deck.length;
   document.getElementById("pcount").textContent=done+"/"+total;
   document.getElementById("pfill").style.width=(done/total*100)+"%";
   document.getElementById("undo").disabled=!undoStack.length;
@@ -251,7 +272,8 @@ function render(){
     zoneEl(ZONE[UNK],"No conozco este concepto",""));
   const bar=document.getElementById("actionbar");bar.hidden=!selected.size;
   if(selected.size)bar.replaceChildren(h("span",{},(selected.size===1?"1 tarjeta seleccionada":selected.size+" tarjetas seleccionadas")+". Arrastra cualquiera para moverlas juntas."),
-    h("button",{class:"btn small primary",type:"button",onclick:openMove},"Mover a…"),h("button",{class:"btn small",type:"button",onclick(){selected.clear();render()}},"Quitar selección"));
+    h("button",{class:"btn small primary",type:"button",onclick:openMove},"Mover a…"),
+    selected.size===1&&nueva([...selected][0])?h("button",{class:"btn small",type:"button",onclick(){openCardForm(nueva([...selected][0]))}},"Editar tarjeta"):null,h("button",{class:"btn small",type:"button",onclick(){selected.clear();render()}},"Quitar selección"));
 }
 function openMove(){const ids=[...selected];
   dlg.replaceChildren(h("div",{class:"dlg"},h("h2",{},"Mover "+(ids.length===1?"1 tarjeta":ids.length+" tarjetas")),
@@ -331,14 +353,20 @@ function viewResults(){
       h("button",{class:"btn small",type:"button",onclick:exportCsv,disabled:!rows.length},"Descargar CSV")),
     h("p",{class:"note"},"Agreement matrix: cada celda es el porcentaje de personas que puso la tarjeta en esa bandeja; el recuadro marca la principal. El acuerdo no cuenta No conozco. Semáforo: 80% o más exitosa, 50% a 79% warning, menos de 50% problema de concepto."),
     rows.length?h("div",{class:"scroll"},tbl):h("p",{class:"empty"},"Todavía no hay respuestas completas."),
+    h("h2",{},"Tarjetas nuevas"),
+    tabNuevas(rows),
     h("h2",{},"Participantes"),
-    h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Nombre"),h("th",{},"Estado"),h("th",{},"Min"),h("th",{},"Comentario"),h("th",{}))),
-      h("tbody",{},R.rows.slice().reverse().map(r=>h("tr",{},h("td",{},r.nombre),h("td",{},r.completado?"Completa":`En curso (faltan ${r.sin_ordenar})`),h("td",{class:"mono"},Math.round(r.segundos/60)),h("td",{},r.comentario),h("td",{},delBtn(r)))))))));
+    h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Nombre"),h("th",{},"Estado"),h("th",{},"Min"),h("th",{},"Nuevas"),h("th",{},"Comentario"),h("th",{}))),
+      h("tbody",{},R.rows.slice().reverse().map(r=>h("tr",{},h("td",{},r.nombre),h("td",{},r.completado?"Completa":`En curso (faltan ${r.sin_ordenar})`),h("td",{class:"mono"},Math.round(r.segundos/60)),h("td",{class:"mono"},(r.nuevas||[]).length),h("td",{},r.comentario),h("td",{},delBtn(r)))))))));
 }
+function tabNuevas(rows){const list=rows.flatMap(r=>(r.nuevas||[]).map(c=>({r,c})));
+  if(!list.length)return h("p",{class:"empty"},"Todavía nadie ha creado tarjetas nuevas en esta ronda.");
+  return h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Tarjeta"),h("th",{},"Descripción"),h("th",{},"Creada por"),h("th",{},"La ubicó en"))),
+    h("tbody",{},list.map(({r,c})=>{const z=ZONE[(r.ubicaciones||{})[c.id]];return h("tr",{},h("td",{},c.n),h("td",{},c.d||""),h("td",{},r.nombre),h("td",{},z?z.label:"Sin ordenar"))}))))}
 function delBtn(r){if(R.del!==r.id)return h("button",{class:"btn small",type:"button",onclick(){R.del=r.id;viewResults()}},"Eliminar");
   return h("button",{class:"btn small danger",type:"button",async onclick(){try{await rpc("eliminar_ronda",{p_clave:R.key,p_id:r.id});R.del=null;loadResults(R.key)}catch{R.del=null;viewResults()}}},"Confirmar")}
 function exportCsv(){const esc=v=>{v=String(v??"");if(/^[=+\-@]/.test(v))v="'"+v;return/[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
-  const out=[["persona","estado","tarjeta","mercado","tipo","bandeja"]];R.rows.filter(r=>R.parciales||r.completado).forEach(r=>Object.entries(r.ubicaciones||{}).forEach(([id,k])=>{const z=ZONE[k];if(BY_ID[id]&&z)out.push([r.nombre,r.completado?"completa":"en curso",BY_ID[id].l,z.pname,z.sname,z.label])}));
+  const out=[["persona","estado","tarjeta","origen","descripcion","mercado","tipo","bandeja"]];R.rows.filter(r=>R.parciales||r.completado).forEach(r=>Object.entries(r.ubicaciones||{}).forEach(([id,k])=>{const z=ZONE[k],nv=(r.nuevas||[]).find(c=>c.id===id);if((BY_ID[id]||nv)&&z)out.push([r.nombre,r.completado?"completa":"en curso",BY_ID[id]?BY_ID[id].l:nv.n,BY_ID[id]?"original":"nueva",nv?nv.d||"":"",z.pname,z.sname,z.label])}));
   const a=h("a",{href:URL.createObjectURL(new Blob(["﻿"+out.map(r=>r.map(esc).join(";")).join("\r\n")],{type:"text/csv;charset=utf-8"})),download:"card-sorting-transversales.csv"});document.body.append(a);a.click();a.remove()}
 
 /* ---------- arranque ---------- */
@@ -346,10 +374,10 @@ async function boot(){
   if(location.hash==="#resultados"){let k=null;try{k=sessionStorage.getItem("csot:k")}catch{}return k?loadResults(k):viewLock()}
   if(location.hash.startsWith("#s-")){const id=location.hash.slice(3);app.replaceChildren(h("p",{class:"empty"},"Recuperando tu avance…"));
     try{const r=await rpc("cargar_ronda",{p_id:id,p_ronda:RONDA});if(!r)throw 0;if(r.completado){S={done:true};return viewDone()}
-      const zones=Object.fromEntries(ZONES.map(z=>[z.key,[]]));const known=new Set();Object.entries(r.ubicaciones||{}).forEach(([cid,k])=>{if(BY_ID[cid]&&zones[k]){zones[k].push(cid);known.add(cid)}});
-      S={id:r.id,nombre:r.nombre,deck:shuffle(CARDS.map(c=>c.id).filter(c=>!known.has(c))),zones,seconds:r.segundos||0,done:false};persist();history.replaceState(null,"",location.pathname);return viewBoard()}
+      const zones=Object.fromEntries(ZONES.map(z=>[z.key,[]]));const known=new Set();const nv=Array.isArray(r.nuevas)?r.nuevas:[];Object.entries(r.ubicaciones||{}).forEach(([cid,k])=>{if((BY_ID[cid]||nv.some(c=>c.id===cid))&&zones[k]){zones[k].push(cid);known.add(cid)}});
+      S={id:r.id,nombre:r.nombre,deck:shuffle([...CARDS.map(c=>c.id),...nv.map(c=>c.id)].filter(c=>!known.has(c))),zones,nuevas:nv,seconds:r.segundos||0,done:false};persist();history.replaceState(null,"",location.pathname);return viewBoard()}
     catch{app.replaceChildren(h("div",{class:"done"},h("h2",{},"No encontramos ese avance"),h("button",{class:"btn primary",type:"button",onclick(){history.replaceState(null,"",location.pathname);boot()}},"Ir al inicio")));return}}
-  const s=store.get();if(s&&s.id){S=s;if(S.done)return viewDone();return viewBoard()}
+  const s=store.get();if(s&&s.id){S=s;if(!S.done&&!Array.isArray(S.nuevas))S.nuevas=[];if(S.done)return viewDone();return viewBoard()}
   viewIntro();
 }
 addEventListener("hashchange",boot);
