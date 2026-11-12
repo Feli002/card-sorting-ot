@@ -5,702 +5,155 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <title>Card Sorting One Touch</title>
+<script>
+// Enlaces antiguos de la ronda 1 (continuar o resultados) siguen funcionando.
+(function(){function go(){var h=location.hash;if(h.indexOf("#s-")===0||h==="#resultados"){location.replace("general.html"+h)}}go();addEventListener("hashchange",go)})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600&display=swap">
 <style>
-/* Layout: una mesa de trabajo. Mazo fijo a la izquierda, categorías como pilas a la derecha. */
-:root{
-  --bg:#e9efee;--surface:#fbfdfc;--sunken:#dde6e4;--ink:#122a2e;--muted:#566c70;--line:#c3d1cf;
-  --accent:#0a6a6e;--accent-ink:#ffffff;--pick:#f6c445;--pick-ink:#3a2b00;--danger:#b23a2e;--ok:#23704a;
-  --card:#ffffff;--shadow:0 1px 0 rgba(18,42,46,.1),0 2px 6px rgba(18,42,46,.08);--mod-bg:#efe4fb;--mod-line:#7637c8;--mod-ink:#4b1f8c;
-  --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;
-  --body:"Schibsted Grotesk","Segoe UI",system-ui,sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
-  --head:64px;
-}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0f1b1e;--surface:#16262a;--sunken:#0b1416;--ink:#e4efee;--muted:#9db2b4;--line:#2c4347;
-  --accent:#4cc3c0;--accent-ink:#06282a;--pick:#f6c445;--pick-ink:#3a2b00;--danger:#ef8a7c;--ok:#74cfa0;
-  --card:#1d3136;--shadow:0 1px 0 rgba(0,0,0,.4);--mod-bg:#35234f;--mod-line:#b58bf0;--mod-ink:#dcc6fa;color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#0f1b1e;--surface:#16262a;--sunken:#0b1416;--ink:#e4efee;--muted:#9db2b4;--line:#2c4347;
-  --accent:#4cc3c0;--accent-ink:#06282a;--pick:#f6c445;--pick-ink:#3a2b00;--danger:#ef8a7c;--ok:#74cfa0;
-  --card:#1d3136;--shadow:0 1px 0 rgba(0,0,0,.4);--mod-bg:#35234f;--mod-line:#b58bf0;--mod-ink:#dcc6fa;color-scheme:dark}
+:root{--bg:#e9efee;--surface:#fbfdfc;--ink:#122a2e;--muted:#566c70;--line:#c3d1cf;--accent:#0a6a6e;--accent-ink:#fff;--pick:#f6c445;--pick-ink:#3a2b00;
+  --v:#2f5fb3;--p:#a3561b;--c:#6b4bb0;--t:#2d7a52;--g:#0a6a6e;
+  --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;--body:"Schibsted Grotesk","Segoe UI",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1b1e;--surface:#16262a;--ink:#e4efee;--muted:#9db2b4;--line:#2c4347;--accent:#4cc3c0;--accent-ink:#06282a;
+  --v:#7fa8f0;--p:#e6a06a;--c:#b89cf0;--t:#74cfa0;--g:#4cc3c0;color-scheme:dark}}
 *{box-sizing:border-box}
-html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--body);min-height:100dvh}
 [hidden]{display:none!important}
-h1,h2,h3{font-family:var(--display);line-height:1.12;margin:0;text-wrap:balance}
-h1{font-size:clamp(2rem,6vw,3.4rem);font-weight:700;letter-spacing:-.02em}
-h2{font-size:1.5rem;font-weight:700}
-h3{font-size:1.05rem;font-weight:700}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--body)}
+.wrap{max-width:1040px;margin:0 auto;padding-block:clamp(32px,7vw,80px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:28px}
+h1,h2,h3{font-family:var(--display);line-height:1.1;margin:0;text-wrap:balance}
+h1{font-size:clamp(2.2rem,6vw,3.6rem);font-weight:700;letter-spacing:-.02em;max-width:18ch}
 p{margin:0}
-button,input,select,textarea{font:inherit;color:inherit}
-button{cursor:pointer}
+.lede{font-size:1.1rem;color:var(--muted);max-width:62ch}
+.eyebrow{font:500 .78rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.resume{background:var(--pick);color:var(--pick-ink);border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.resume a{color:inherit;font-weight:600}
+.step{font:500 .8rem var(--mono);color:var(--muted)}
+.r1{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--g);border-radius:14px;padding:clamp(18px,3vw,26px)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-top:6px solid var(--k);border-radius:14px;padding:18px;display:grid;gap:10px;align-content:start}
+.card h3{font-size:1.25rem}
+.facts{display:flex;gap:8px;flex-wrap:wrap;font:400 .82rem var(--mono);color:var(--muted)}
+.facts span{border:1px solid var(--line);border-radius:999px;padding:.05rem .55rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border-radius:8px;padding:.55rem 1rem;font-weight:600;text-decoration:none;background:var(--accent);color:var(--accent-ink);justify-self:start}
+.state{font:500 .8rem var(--mono);color:var(--accent)}
+.how{color:var(--muted);font-size:.95rem;max-width:70ch}
+footer{color:var(--muted);font-size:.86rem;border-top:1px solid var(--line);padding-top:18px;display:grid;gap:6px}
+footer a{color:var(--accent)}
+.prog{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(16px,3vw,24px);display:grid;gap:14px}
+.prog-head{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:.3rem .8rem;font:500 .88rem var(--body);cursor:pointer;min-height:36px}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.kpi b{display:block;font:500 1.6rem/1.1 var(--mono)}
+.kpi span{font-size:.84rem;color:var(--muted)}
+.people{display:grid;gap:6px}
+.person{display:grid;grid-template-columns:minmax(0,13rem) minmax(0,1fr) 7.5rem;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.person:last-child{border-bottom:0}
+.pname{font-weight:600;overflow-wrap:anywhere}
+.pname small{display:block;font-weight:400;color:var(--muted);font-size:.8rem}
+.ptrack{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.ptrack i{display:block;height:100%;border-radius:5px}
+.pst{font:500 .82rem var(--mono);text-align:right}
+.ok-t{color:#1f7a45}.mid-t{color:#9a6400}.zero-t{color:#b3362a}
+@media (prefers-color-scheme:dark){.ok-t{color:#6fd39a}.mid-t{color:#f1c25b}.zero-t{color:#f2897c}}
+.prog .note{font-size:.85rem;color:var(--muted)}
+.btn-ghost{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;padding:.35rem .8rem;font:500 .88rem var(--body);cursor:pointer;min-height:36px}
+@media (max-width:640px){.person{grid-template-columns:minmax(0,1fr) 6.5rem}.ptrack{grid-column:1/-1;grid-row:2}}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:.55rem .9rem;font-weight:500;min-height:44px}
-.btn:hover:not(:disabled){border-color:var(--accent)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.btn.small{min-height:36px;padding:.3rem .7rem;font-size:.9rem}
-.btn.danger{color:var(--danger);border-color:var(--danger)}
-.link{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;font-weight:500}
-.field{display:grid;gap:.3rem;min-width:0}
-.field label,.label{font-weight:600;font-size:.92rem}
-input[type=text],input[type=password],input[type=search],select,textarea{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:.6rem .7rem;min-height:44px}
-textarea{min-height:90px;resize:vertical}
-.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
-.muted{color:var(--muted)}
-
-/* Bienvenida */
-.intro{max-width:1040px;margin:0 auto;padding-block:clamp(28px,6vw,72px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:clamp(24px,5vw,64px);align-items:start}
-.intro-copy{display:grid;gap:1.1rem;min-width:0}
-.intro-copy p{max-width:58ch}
-.how{list-style:none;padding:0;margin:.4rem 0 0;display:grid;gap:.7rem}
-.how li{display:grid;grid-template-columns:2rem minmax(0,1fr);gap:.5rem;align-items:baseline}
-.how b{font-family:var(--mono);color:var(--accent);font-weight:500}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:grid;gap:1rem;min-width:0}
-.fan{position:relative;height:96px;margin-bottom:.2rem}
-.fan span{position:absolute;left:50%;top:14px;width:150px;height:62px;margin-left:-75px;background:var(--card);border:1px solid var(--line);border-radius:6px;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:600;text-align:center;padding:4px}
-.fan span:nth-child(1){transform:translateX(-62px) rotate(-8deg)}
-.fan span:nth-child(2){transform:translateX(62px) rotate(7deg)}
-.fan span:nth-child(3){transform:translateY(4px);border-color:var(--accent)}
-
-/* Mesa */
-.top{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.top .name{font-family:var(--display);font-weight:700;font-size:1.1rem;margin-right:auto}
-.progress{display:flex;align-items:center;gap:8px;min-width:170px;flex:0 1 240px}
-.bar{height:8px;flex:1;border-radius:4px;background:var(--sunken);overflow:hidden}
-.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
-.saved{font-size:.82rem;color:var(--muted);white-space:nowrap}
-.saved.bad{color:var(--danger);font-weight:600}
-.table{display:grid;grid-template-columns:320px minmax(0,1fr);gap:16px;align-items:start;padding-block:16px 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.deck{position:sticky;top:calc(var(--head) + 12px);max-height:calc(100dvh - var(--head) - 28px);display:flex;flex-direction:column;background:var(--sunken);border-radius:12px;padding:12px;gap:8px;min-width:0}
-.deck-list{overflow:auto;display:flex;flex-direction:column;gap:6px;padding:2px;flex:1;min-height:0}
-.empty{color:var(--muted);padding:12px;text-align:center}
-.tcard{-webkit-touch-callout:none;display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:.5rem .6rem;box-shadow:var(--shadow);line-height:1.3;font-size:.95rem;font-weight:500;touch-action:manipulation;user-select:none;-webkit-user-select:none;min-height:44px;overflow-wrap:anywhere}
-.tcard,.cardwrap{flex:none}
-.tcard:hover{border-color:var(--accent)}
-.tcard[aria-pressed="true"]{background:var(--pick);color:var(--pick-ink);border-color:var(--pick)}
-.tcard.ghosted{opacity:.35}
-.ghost{position:fixed;z-index:60;pointer-events:none;width:240px;transform:rotate(-2deg) translate(-20px,-16px);box-shadow:0 10px 24px rgba(0,0,0,.28)}
-.ghost em{position:absolute;right:-8px;top:-10px;background:var(--accent);color:var(--accent-ink);font:500 .78rem var(--mono);border-radius:10px;padding:0 7px}
-.board{display:grid;gap:12px;min-width:0}
-.unknown,.pile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
-.unknown{border-style:dashed}
-.pile-head{display:flex;gap:6px;align-items:center}
-.pile-head input{min-height:38px;padding:.3rem .5rem;font-weight:600}
-.pile-head input:placeholder-shown{border-color:var(--danger)}
-.count{font-size:.8rem;color:var(--muted);min-width:1.6em;text-align:right}
-.icon{border:0;background:none;width:36px;height:36px;border-radius:6px;color:var(--muted);flex:none}
-.icon:hover{background:var(--sunken);color:var(--ink)}
-.pile-cards{display:flex;flex-direction:column;gap:5px;max-height:320px;overflow:auto;padding:1px}
-.drop-hint{font-size:.88rem;color:var(--muted)}
-.is-over{outline:3px solid var(--accent);outline-offset:1px}
-.fixed-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.fixed-row .pile-cards{max-height:190px}
-.fixed-tag{font-size:.74rem;color:var(--muted);white-space:nowrap}
-.tag{font:500 .7rem var(--mono);background:var(--mod-line);color:var(--mod-bg);border-radius:4px;padding:0 5px;white-space:nowrap}
-.pile.mod{background:var(--mod-bg);border-color:var(--mod-line)}
-.pile.mod .pile-head input{border-color:var(--mod-line);color:var(--mod-ink)}
-.cardwrap{position:relative;display:block}
-.cardwrap .tcard{padding-right:2.3rem}
-.cardwrap .edit{position:absolute;right:3px;top:3px;width:34px;height:34px;border:0;background:none;border-radius:5px;color:var(--mod-ink)}
-.cardwrap .edit:hover{background:var(--mod-line);color:var(--mod-bg)}
-.tcard.mod{background:var(--mod-bg);border-color:var(--mod-line);color:var(--mod-ink)}
-.tcard.mod small{display:block;font-weight:400;font-size:.8rem;line-height:1.25;margin-top:2px}
-.tcard.mod[aria-pressed="true"]{background:var(--pick);color:var(--pick-ink);border-color:var(--mod-line)}
-.legend{display:flex;align-items:center;gap:.5rem;font-size:.86rem;color:var(--muted)}
-.deck-tools{display:flex;gap:8px}
-.deck-tools .btn{flex:1}
-.piles{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;align-items:start}
-.newpile{border:2px dashed var(--line);background:none;border-radius:10px;min-height:96px;font-weight:600;color:var(--accent);padding:12px}
-.newpile:hover{border-color:var(--accent)}
-.actionbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--ink);color:var(--bg);display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.actionbar .btn{color:var(--ink)}
-dialog{border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:20px;width:min(480px,calc(100vw - 32px));max-height:calc(100dvh - 48px)}
-dialog::backdrop{background:rgba(6,18,20,.55)}
-.dlg{display:grid;gap:.9rem}
-.movelist{display:grid;gap:6px;max-height:44dvh;overflow:auto}
-.movelist .btn{text-align:left;width:100%}
-.row{display:flex;gap:8px;flex-wrap:wrap}
-.row.end{justify-content:flex-end}
-.err{color:var(--danger);font-weight:500}
-.done{max-width:640px;margin:0 auto;padding-block:clamp(40px,10vw,110px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:1rem}
-
-/* Resultados */
-.res{max-width:1240px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:18px}
-.lock{max-width:420px;margin:0 auto}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.stat{background:var(--surface);padding:12px 14px}
-.stat b{display:block;font:500 1.7rem/1.1 var(--mono)}
-.stat span{font-size:.86rem;color:var(--muted)}
-.filters{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
-.filters .field{flex:0 1 170px}
-.check{display:flex;gap:.45rem;align-items:center;min-height:44px}
-.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line)}
-.tabs button{border:0;background:none;padding:.6rem .8rem;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap;min-height:44px}
-.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
-.clusters{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;align-items:start}
-.cluster{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:6px;min-width:0}
-.cluster ul{list-style:none;margin:0;padding:0;display:grid;gap:3px;font-size:.93rem}
-.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
-table{border-collapse:collapse;width:100%;font-size:.93rem}
-th,td{padding:.5rem .7rem;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
-th{font-weight:600;background:var(--sunken);white-space:nowrap}
-td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
-tr:last-child td{border-bottom:0}
-.heatwrap{position:relative;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);max-height:760px}
-canvas{display:block}
-.tip{position:fixed;z-index:50;pointer-events:none;background:var(--ink);color:var(--bg);padding:.4rem .6rem;border-radius:6px;font-size:.85rem;max-width:320px}
-.slider{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.slider input{flex:0 1 260px;accent-color:var(--accent)}
-.note{font-size:.9rem;color:var(--muted);max-width:70ch}
-
-@media (max-width:800px){
-  :root{--head:0px}
-  .intro{grid-template-columns:minmax(0,1fr)}
-  .top{position:static}
-  .table{grid-template-columns:minmax(0,1fr)}
-  .deck{position:static;max-height:46dvh}
-  .piles,.fixed-row{grid-template-columns:minmax(0,1fr)}
-}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:640px){.r1{grid-template-columns:minmax(0,1fr)}}
 </style>
 </head>
 <body>
-<main id="app"></main>
-<dialog id="dlg"></dialog>
-<script id="cards-data" type="application/json">[{"l":"Vista 360","o":["Estructurales · Estrucutrales · fila 5"],"id":"k001"},{"l":"Header","o":["Estructurales · Estrucutrales · fila 6"],"id":"k002"},{"l":"Sidebar","o":["Estructurales · Estrucutrales · fila 7"],"id":"k003"},{"l":"Cambio de PDV","o":["Estructurales · Estrucutrales · fila 8"],"id":"k004"},{"l":"Información General","o":["Estructurales · Información Cliente · fila 11"],"id":"k005"},{"l":"Contacto","o":["Estructurales · Información Cliente · fila 12"],"id":"k006"},{"l":"Direcciones","o":["Estructurales · Información Cliente · fila 13"],"id":"k007"},{"l":"Perfil de facturación (sección Vista 360)","o":["Estructurales · Información Cliente · fila 14"],"id":"k008"},{"l":"Documentación","o":["Estructurales · Información Cliente · fila 15"],"id":"k009"},{"l":"Usuarios","o":["Estructurales · Información Cliente · fila 16"],"id":"k010"},{"l":"Cuenta Corriente","o":["Estructurales · Información Cliente · fila 17","Gestión · Proyectos · fila 41"],"id":"k011"},{"l":"Mapa de red","o":["Estructurales · Información Cliente · fila 18","Gestión · Proyectos · fila 42"],"id":"k012"},{"l":"Boletas vigente - total a pagar","o":["Estructurales · Boleta · fila 20"],"id":"k013"},{"l":"Oferta plan móvil","o":["Estructurales · Campañas cliente · fila 22"],"id":"k014"},{"l":"Oferta hogar","o":["Estructurales · Campañas cliente · fila 23"],"id":"k015"},{"l":"Oferta en equipos","o":["Estructurales · Campañas cliente · fila 24"],"id":"k016"},{"l":"Oferta prepago","o":["Estructurales · Campañas cliente · fila 25"],"id":"k017"},{"l":"Campaña Buyback","o":["Estructurales · Campañas cliente · fila 26"],"id":"k018"},{"l":"Assets Hogar","o":["Estructurales · Assets · fila 28"],"id":"k019"},{"l":"Assets Móvil","o":["Estructurales · Assets · fila 29"],"id":"k020"},{"l":"Assets: otros productos","o":["Estructurales · Assets · fila 30"],"id":"k021"},{"l":"Últimas solicitudes","o":["Estructurales · Generales · fila 32"],"id":"k022"},{"l":"Acciones generales - Venta","o":["Estructurales · Generales · fila 33"],"id":"k023"},{"l":"Acciones generales - Postventa","o":["Estructurales · Generales · fila 34"],"id":"k024"},{"l":"Otras acciones","o":["Estructurales · Generales · fila 35"],"id":"k025"},{"l":"Marca: Afinidad / Marca cliente","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 37"],"id":"k026"},{"l":"Marca: Afinidad / Descuento afinidad","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 38"],"id":"k027"},{"l":"Marca: Entel Visa","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 39"],"id":"k028"},{"l":"Marcas especiales","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 40"],"id":"k029"},{"l":"Marca: IVR","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 41"],"id":"k030"},{"l":"Marca: ARM / Fraude","o":["Estructurales · Marcas (Visualización - sin flujos) · fila 42"],"id":"k031"},{"l":"Factibilidad crediticia","o":["Estructurales · Trasnversales · fila 45"],"id":"k032"},{"l":"Catálogo de planes Móviles","o":["Estructurales · Trasnversales · fila 46"],"id":"k033"},{"l":"Catálogo de Equipos y Accesorios","o":["Estructurales · Trasnversales · fila 47"],"id":"k034"},{"l":"Resumen generales","o":["Estructurales · Trasnversales · fila 49"],"id":"k035"},{"l":"Perfil de facturación (paso transversal)","o":["Estructurales · Trasnversales · fila 50"],"id":"k036"},{"l":"Delivery","o":["Estructurales · Trasnversales · fila 51"],"id":"k037"},{"l":"Validación de identidad","o":["Estructurales · Trasnversales · fila 52"],"id":"k038"},{"l":"Biometría Facial","o":["Estructurales · Trasnversales · fila 62"],"id":"k039"},{"l":"Assets Hogar y Móvil (complemento)","o":["Estructurales · Complementos · fila 65"],"id":"k040"},{"l":"Activación Postpago","o":["Ventas · Venta Móvil · fila 6"],"id":"k041"},{"l":"Activación Prepago","o":["Ventas · Venta Móvil · fila 7"],"id":"k042"},{"l":"Activación Prepago Anónimo","o":["Ventas · Venta Móvil · fila 9"],"id":"k043"},{"l":"Pago Anticipado","o":["Ventas · Venta Móvil · fila 10"],"id":"k044"},{"l":"Portabilidad Postpago - CAP","o":["Ventas · Portabilidad · fila 12"],"id":"k045"},{"l":"Portabilidad Postpago (Old version)","o":["Ventas · Portabilidad · fila 13"],"e":"Deprecado","id":"k046"},{"l":"Portabilidad Prepago - CAP","o":["Ventas · Portabilidad · fila 14"],"id":"k047"},{"l":"Buyback: Venta Canal presencial","o":["Ventas · Buyback · fila 19"],"id":"k048"},{"l":"Buyback: Anulación y cancelación (Fase 1)","o":["Ventas · Buyback · fila 20"],"id":"k049"},{"l":"Prepago - Comprar bolsa","o":["Ventas · Bolsas · fila 22"],"id":"k050"},{"l":"Postpago - Comprar bolsa","o":["Ventas · Bolsas · fila 23"],"id":"k051"},{"l":"Postpago - Bolsas Fast","o":["Ventas · Bolsas · fila 24"],"id":"k052"},{"l":"Suscripción - Bolsa Roaming","o":["Ventas · Bolsas · fila 25"],"id":"k053"},{"l":"Asociar seguro","o":["Ventas · Seguros · fila 30"],"id":"k054"},{"l":"Seguro posterior a venta","o":["Ventas · Seguros · fila 31"],"id":"k055"},{"l":"Cambio de equipo ACOC","o":["Ventas · Equipo · fila 34"],"id":"k056"},{"l":"Aceleración de cuotas","o":["Ventas · Equipo · fila 35","Postventa · Anulación, cancelación y aceleración · fila 6"],"id":"k057"},{"l":"Pie de financiamiento","o":["Ventas · Equipo · fila 36"],"e":"Mejora","id":"k058"},{"l":"Venta Hogar: Postpago - Alámbrica","o":["Ventas · Venta Hogar · fila 40"],"id":"k059"},{"l":"Venta Hogar: Postpago - Inalámbrica","o":["Ventas · Venta Hogar · fila 41"],"e":"Deprecado","id":"k060"},{"l":"Venta Hogar: Prepago - Inalámbrica","o":["Ventas · Venta Hogar · fila 42"],"e":"Deprecado","id":"k061"},{"l":"Portabilidad Hogar: Alámbrica","o":["Ventas · Portabilidad hogar · fila 47"],"id":"k062"},{"l":"Portabilidad Hogar: Postpago - Inalámbrica","o":["Ventas · Portabilidad hogar · fila 48"],"e":"Deprecar","id":"k063"},{"l":"Factibilidad Técnica con venta","o":["Ventas · Factibilidad técnica · fila 53"],"id":"k064"},{"l":"Entel TV - Base","o":["Ventas · Entel TV · fila 55"],"id":"k065"},{"l":"Entel TV + Deco","o":["Ventas · Entel TV · fila 56"],"id":"k066"},{"l":"Venta Suelta Convergente (Hogar, Móvil y Accesorios)","o":["Ventas · Catálogo · fila 59"],"id":"k067"},{"l":"Venta Suelta - Móvil","o":["Ventas · Catálogo · fila 60"],"id":"k068"},{"l":"Venta Suelta - Hogar","o":["Ventas · Catálogo · fila 61"],"id":"k069"},{"l":"Anulación Móvil","o":["Postventa · Anulación, cancelación y aceleración · fila 7"],"id":"k070"},{"l":"Cancelación Móvil","o":["Postventa · Anulación, cancelación y aceleración · fila 8"],"id":"k071"},{"l":"Anulación Hogar","o":["Postventa · Anulación, cancelación y aceleración · fila 10"],"id":"k072"},{"l":"Cancelación Hogar","o":["Postventa · Anulación, cancelación y aceleración · fila 11"],"id":"k073"},{"l":"Anulación Entel TV","o":["Postventa · Anulación, cancelación y aceleración · fila 12"],"id":"k074"},{"l":"Cancelación Entel TV","o":["Postventa · Anulación, cancelación y aceleración · fila 13"],"id":"k075"},{"l":"Bloqueo Móvil","o":["Postventa · Bloqueo y desbloqueo · fila 15"],"id":"k076"},{"l":"Desbloqueo Móvil","o":["Postventa · Bloqueo y desbloqueo · fila 16"],"id":"k077"},{"l":"Bloqueo Hogar","o":["Postventa · Bloqueo y desbloqueo · fila 17"],"id":"k078"},{"l":"Desbloqueo Hogar","o":["Postventa · Bloqueo y desbloqueo · fila 18"],"id":"k079"},{"l":"Desbloqueo + Face ID","o":["Postventa · Bloqueo y desbloqueo · fila 19"],"id":"k080"},{"l":"Cambio plan Móvil - Postpago","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 30"],"id":"k081"},{"l":"Cambio plan Móvil - Prepago","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 31"],"id":"k082"},{"l":"Cambio de Plan por Excepción/Blindaje","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 32"],"id":"k083"},{"l":"Cambio de Plan + Compra de equipo Móvil","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 33"],"id":"k084"},{"l":"Cambio de plan: Inalámbrico / downgrade-upgrade-upselling","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 34"],"id":"k085"},{"l":"Cambio de plan: Inalámbrico / upselling con portabilidad","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 35"],"id":"k086"},{"l":"Cambio de plan: Inalámbrico-Fibra (cambio de tecnología) / Hogar","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 36"],"id":"k087"},{"l":"Cambio de plan: Fibra-Inalámbrico / Hogar","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 37"],"e":"Deprecado","id":"k088"},{"l":"Cambio de plan: Fibra","o":["Postventa · Cambio de Plan Móvil y Hogar · fila 40"],"id":"k089"},{"l":"Cambio de SIM - Móvil","o":["Postventa · Cambio de SIM, Número y Equipo · fila 42"],"id":"k090"},{"l":"Cambio de SIM - Hogar","o":["Postventa · Cambio de SIM, Número y Equipo · fila 43"],"id":"k091"},{"l":"Cambio de Número - Hogar","o":["Postventa · Cambio de SIM, Número y Equipo · fila 44"],"id":"k092"},{"l":"Cambio de Número - Móvil_Postpago","o":["Postventa · Cambio de SIM, Número y Equipo · fila 45"],"id":"k093"},{"l":"Cambio de Número - Móvil_Prepago","o":["Postventa · Cambio de SIM, Número y Equipo · fila 46"],"id":"k094"},{"l":"Cambio de Equipo - Móvil","o":["Postventa · Cambio de SIM, Número y Equipo · fila 47"],"id":"k095"},{"l":"Renuncia Prepago Móvil","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 49"],"id":"k096"},{"l":"Renuncia/Migración Móvil","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 50"],"id":"k097"},{"l":"Renuncia con desinstalación Hogar","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 52"],"id":"k098"},{"l":"Renuncia Full Hogar ALA","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 55"],"id":"k099"},{"l":"Renuncia con Downselling Hogar ALA","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 56"],"id":"k100"},{"l":"Renuncia outdoor Hogar INA","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 57"],"id":"k101"},{"l":"Migración PP a PS + equipo","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 58"],"id":"k102"},{"l":"Migración Full - Inalámbrico / Hogar","o":["Postventa · Renuncia y Migración / Móvil y Hogar · fila 59"],"id":"k103"},{"l":"Susp. Temporal - Móvil","o":["Postventa · Suspensiones y reactivaciones · fila 65"],"id":"k104"},{"l":"Susp. Temporal - Hogar","o":["Postventa · Suspensiones y reactivaciones · fila 66"],"id":"k105"},{"l":"Reactivar línea - Móvil","o":["Postventa · Suspensiones y reactivaciones · fila 69"],"id":"k106"},{"l":"Reactivar línea - Hogar","o":["Postventa · Suspensiones y reactivaciones · fila 70"],"id":"k107"},{"l":"Cambio de domicilio","o":["Postventa · Hogar · fila 76"],"id":"k108"},{"l":"Cambio de domicilio / Regularización dirección cliente","o":["Postventa · Hogar · fila 79"],"id":"k109"},{"l":"Reubicación de equipo","o":["Postventa · Hogar · fila 80"],"id":"k110"},{"l":"Reagendamiento por venta nueva o que no se ha instalado","o":["Postventa · Hogar · fila 81"],"id":"k111"},{"l":"Reagendamiento por traslado externo","o":["Postventa · Hogar · fila 82"],"id":"k112"},{"l":"Cambio de contrato Hogar/Móvil","o":["Postventa · Cambio de contrato · fila 86"],"id":"k113"},{"l":"Canales adicionales","o":["Postventa · Adicionales · fila 90"],"id":"k114"},{"l":"Gestionar equipos adicionales / Agregar equipos","o":["Postventa · Adicionales · fila 91"],"id":"k115"},{"l":"Gestionar equipos adicionales / Quitar equipos","o":["Postventa · Adicionales · fila 92"],"id":"k116"},{"l":"VAS + VAS Premium","o":["Postventa · Servicios VAS · fila 94"],"id":"k117"},{"l":"Restricciones VAS Hogar","o":["Postventa · Servicios VAS · fila 95"],"id":"k118"},{"l":"Restricciones VAS Inalámbrico Móvil","o":["Postventa · Servicios VAS · fila 96"],"id":"k119"},{"l":"Agendamiento Hogar","o":["Postventa · Hogar · fila 100"],"id":"k120"},{"l":"Reagendamiento Hogar","o":["Postventa · Hogar · fila 101"],"id":"k121"},{"l":"Llamada futura","o":["Postventa · Hogar · fila 102","Postventa · Otras acciones · fila 106"],"id":"k122"},{"l":"Creación de cliente","o":["Gestión · Gestión y edición · fila 6"],"id":"k123"},{"l":"Editar contacto","o":["Gestión · Gestión y edición · fila 7"],"id":"k124"},{"l":"Editar / Crear nueva dirección","o":["Gestión · Gestión y edición · fila 8"],"id":"k125"},{"l":"Búsqueda de cliente / Ingreso V360","o":["Gestión · Gestión y edición · fila 9"],"id":"k126"},{"l":"Regularización de cliente Anónimo","o":["Gestión · Gestión y edición · fila 10"],"id":"k127"},{"l":"Preferencia de notificaciones y contacto","o":["Gestión · Gestión y edición · fila 11"],"id":"k128"},{"l":"Cambio de titularidad: Hogar Postpago / Prepago","o":["Gestión · Cambio de titularidad / Cesión de línea · fila 17"],"id":"k129"},{"l":"Cambio de titularidad: Móvil Postpago / Prepago","o":["Gestión · Cambio de titularidad / Cesión de línea · fila 18"],"id":"k130"},{"l":"Cambio de titularidad fallecido","o":["Gestión · Cambio de titularidad / Cesión de línea · fila 19"],"id":"k131"},{"l":"Perfil de facturación: Perfil Cliente","o":["Gestión · Perfil de facturación · fila 23"],"id":"k132"},{"l":"Perfil de facturación: Perfil Cliente - Nuevo / Antiguo","o":["Gestión · Perfil de facturación · fila 24"],"id":"k133"},{"l":"Perfil de facturación: Edición y Cambios de perfil","o":["Gestión · Perfil de facturación · fila 25"],"id":"k134"},{"l":"Historiales Móviles/Hogar","o":["Gestión · Solicitudes e historiales · fila 30"],"e":"Estructural","id":"k135"},{"l":"Solicitudes V360","o":["Gestión · Solicitudes e historiales · fila 31"],"e":"Estructural","id":"k136"},{"l":"Todas las solicitudes","o":["Gestión · Solicitudes e historiales · fila 32"],"e":"Estructural","id":"k137"},{"l":"Consulta de documentos","o":["Gestión · Consultas · fila 35"],"e":"Estructural","id":"k138"},{"l":"Consulta de portabilidad","o":["Gestión · Consultas · fila 36"],"id":"k139"},{"l":"Consulta de factibilidad suelta / Hogar","o":["Gestión · Consultas · fila 37"],"id":"k140"},{"l":"Consulta Tracking delivery","o":["Gestión · Consultas · fila 38"],"e":"Estructural","id":"k141"},{"l":"Consulta Tracking delivery + Método de entrega","o":["Gestión · Consultas · fila 39"],"id":"k142"},{"l":"Contingencias: Notificación","o":["Gestión · Contingencias · fila 47"],"id":"k143"},{"l":"Contingencias: Visualización","o":["Gestión · Contingencias · fila 48"],"id":"k144"},{"l":"Consentimiento de datos (Fase 1)","o":["Gestión · Consentimiento de datos · fila 50"],"e":"Estructural","id":"k145"}]</script>
+<main class="wrap">
+  <header style="display:grid;gap:14px">
+    <div class="eyebrow">One Touch · Equipo Chile</div>
+    <h1>Card sorting de One Touch</h1>
+    <p class="lede">Estamos ordenando los conceptos de One Touch para construir su nueva arquitectura. Puedes participar en la ronda general y en las rondas por área. Cada una se guarda por separado y puedes pausar cuando quieras.</p>
+  </header>
+  <div class="resume" id="resume" hidden></div>
+
+  <section class="prog" id="progreso" aria-labelledby="prog-t">
+    <div class="prog-head"><div><h2 id="prog-t" style="font-size:1.5rem">Progreso del equipo</h2><p class="note" id="prog-upd">Cargando…</p></div>
+      <button class="btn-ghost" type="button" id="prog-refresh">Actualizar</button></div>
+    <div class="tabs" id="prog-tabs" role="group" aria-label="Ronda">
+      <button type="button" data-r="general" aria-pressed="true">General</button><button type="button" data-r="ventas" aria-pressed="false">Ventas</button><button type="button" data-r="postventa" aria-pressed="false">Post Venta</button><button type="button" data-r="consultas" aria-pressed="false">Consultas</button><button type="button" data-r="transversales" aria-pressed="false">Transversales</button>
+    </div>
+    <div class="kpis" id="prog-kpis"></div>
+    <div class="people" id="prog-list"></div>
+    <p class="note">Una ronda cuenta como terminada cuando la persona toca Terminar y envía sus respuestas. Si ordenaste todo pero no enviaste, aún apareces pendiente.</p>
+  </section>
+
+  <section style="display:grid;gap:12px">
+    <span class="step">Ronda 1</span>
+    <article class="r1">
+      <div style="display:grid;gap:8px"><h2 style="font-size:1.6rem">Información general</h2>
+        <p class="how">Ordena las 145 funciones y conceptos de One Touch en las categorías que tengan sentido para ti.</p>
+        <div class="facts"><span>145 tarjetas</span><span>30 a 45 min</span></div><span class="state" data-state="csot:v2"></span></div>
+      <a class="btn" href="general.html">Ir a la ronda general</a>
+    </article>
+  </section>
+
+  <section style="display:grid;gap:12px">
+    <span class="step">Ronda 2 · Por área</span>
+    <p class="how">Tarjetas que el equipo ya ubicó en cada área. Ahora las ordenas por mercado (Móvil, Hogar o Ambos) y por tipo (Viaje o Funcionalidad).</p>
+    <div class="grid">
+      <article class="card" style="--k:var(--v)"><h3>Ventas</h3><div class="facts"><span>32 tarjetas</span><span>10 a 20 min</span></div><span class="state" data-state="csot-ventas:v1"></span><a class="btn" href="ventas.html">Empezar</a></article>
+      <article class="card" style="--k:var(--p)"><h3>Post Venta</h3><div class="facts"><span>58 tarjetas</span><span>20 a 30 min</span></div><span class="state" data-state="csot-postventa:v1"></span><a class="btn" href="postventa.html">Empezar</a></article>
+      <article class="card" style="--k:var(--c)"><h3>Consultas</h3><div class="facts"><span>30 tarjetas</span><span>10 a 20 min</span></div><span class="state" data-state="csot-consultas:v1"></span><a class="btn" href="consultas.html">Empezar</a></article>
+      <article class="card" style="--k:var(--t)"><h3>Transversales</h3><div class="facts"><span>13 tarjetas</span><span>5 a 15 min</span></div><span class="state" data-state="csot-transversales:v1"></span><a class="btn" href="transversales.html">Empezar</a></article>
+    </div>
+  </section>
+
+  <footer>
+    <p>Tus respuestas se guardan con tu nombre solo para poder consultarte si tenemos dudas.</p>
+    <p>Equipo UX, resultados: <a href="general.html#resultados">General</a> · <a href="ventas.html#resultados">Ventas</a> · <a href="postventa.html#resultados">Post Venta</a> · <a href="consultas.html#resultados">Consultas</a> · <a href="transversales.html#resultados">Transversales</a></p>
+  </footer>
+</main>
 <script>
-"use strict";
-const SB_URL="https://jdqagvkvxbzlfayuyzbw.supabase.co",SB_KEY="sb_publishable_RlS6hqg_b8zY1mswYhgr2g_lXdyMnJb";
-const CARDS=JSON.parse(document.getElementById("cards-data").textContent);
-const BY_ID=Object.fromEntries(CARDS.map(c=>[c.id,c]));
-const UNKNOWN="__no_conozco__",DEPRE="__deprecadas__",LS="csot:v2";
-const FIXED={[DEPRE]:"Deprecadas/Apagadas",[UNKNOWN]:"No conozco este concepto"};
-const BASE=[["venta","Venta"],["postventa","Post Venta"],["consulta","Consulta"],["transversales","Transversales/Estructurales"]];
-const BASE_NAME=Object.fromEntries(BASE);
-const app=document.getElementById("app"),dlg=document.getElementById("dlg");
-
-/* utilidades. Todo texto de usuario entra por textContent. */
-function h(tag,props,...kids){
-  const e=document.createElement(tag);
-  for(const[k,v]of Object.entries(props||{})){
-    if(v==null||v===false)continue;
-    if(k==="class")e.className=v;
-    else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);
-    else if(k in e&&k!=="list")e[k]=v;
-    else e.setAttribute(k,v===true?"":v);
-  }
-  for(const c of kids.flat()){if(c==null||c===false)continue;e.append(c.nodeType?c:String(c))}
-  return e;
-}
-const store={get(){try{return JSON.parse(localStorage.getItem(LS))}catch{return null}},set(v){try{localStorage.setItem(LS,JSON.stringify(v))}catch{}},clear(){try{localStorage.removeItem(LS)}catch{}}};
-async function rpc(fn,body){
-  const r=await fetch(SB_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(body)});
-  const t=await r.text();let j=null;try{j=t?JSON.parse(t):null}catch{}
-  if(!r.ok){const e=new Error((j&&j.message)||"error");e.status=r.status;throw e}
-  return j;
-}
-function uuid(){return crypto.randomUUID?crypto.randomUUID():"10000000-1000-4000-8000-100000000000".replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16))}
-function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-const isFixed=n=>n===UNKNOWN||n===DEPRE;
-function norm(s){return String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/\s+/g," ").trim()}
-function pct(x){return Math.round(x*100)+"%"}
-function median(a){if(!a.length)return 0;const s=a.slice().sort((x,y)=>x-y),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2}
-
-/* ---------- Participante ---------- */
-let S=null,undoStack=[],selected=new Set(),query="",saveState="idle",saveTimer=null,saving=false,dirty=false,lastTick=Date.now();
-const nueva=id=>S.nuevas.find(c=>c.id===id);
-const label=id=>BY_ID[id]?BY_ID[id].l:(nueva(id)||{}).n||"";
-function persist(){store.set(S)}
-function snapshot(){undoStack.push(JSON.stringify({piles:S.piles,unknown:S.unknown,depre:S.depre,deck:S.deck,nuevas:S.nuevas}));if(undoStack.length>30)undoStack.shift()}
-function changed(){persist();dirty=true;scheduleSave()}
-function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(pushSave,3000)}
-function payload(done,comentario){
-  return{p_id:S.id,p_nombre:S.nombre,
-    p_grupos:[{n:UNKNOWN,c:S.unknown},{n:DEPRE,c:S.depre},...S.piles.map(g=>({n:g.name,c:g.cards,k:g.base||null}))],
-    p_nuevas:S.nuevas,p_sin_ordenar:S.deck.length,p_comentario:comentario||"",p_segundos:Math.round(S.seconds),p_completado:!!done};
-}
-async function pushSave(){
-  if(saving||!dirty)return;
-  saving=true;dirty=false;setSaved("saving");
-  try{await rpc("guardar_respuesta_v2",payload(false));setSaved("ok")}
-  catch{dirty=true;setSaved("bad");clearTimeout(saveTimer);saveTimer=setTimeout(pushSave,15000)}
-  saving=false;if(dirty&&saveState!=="bad")scheduleSave();
-}
-function setSaved(s){saveState=s;const e=document.getElementById("saved");if(e){e.textContent=s==="bad"?"Sin conexión: tu avance sigue en este equipo":s==="saving"?"Guardando…":s==="ok"?"Avance guardado":"";e.className="saved"+(s==="bad"?" bad":"")}}
-setInterval(()=>{const n=Date.now();if(S&&!S.done&&document.visibilityState==="visible"&&n-lastTick<30000)S.seconds+=(n-lastTick)/1000;lastTick=n},5000);
-window.addEventListener("pagehide",()=>{if(S&&!S.done){persist();if(dirty){try{fetch(SB_URL+"/rest/v1/rpc/guardar_respuesta_v2",{method:"POST",keepalive:true,headers:{apikey:SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(payload(false))})}catch{}}}});
-
-function newState(nombre){return{id:uuid(),nombre,deck:shuffle(CARDS.map(c=>c.id)),piles:BASE.map(([k,n])=>({id:k,base:k,name:n,cards:[]})),unknown:[],depre:[],nuevas:[],seconds:0,done:false}}
-function viewIntro(){
-  const inp=h("input",{type:"text",id:"nombre",maxLength:80,required:true,autocomplete:"name"});
-  const form=h("form",{class:"panel",onsubmit(e){e.preventDefault();
-    const nombre=inp.value.trim();if(!nombre){inp.focus();return}
-    S=newState(nombre);persist();dirty=true;pushSave();viewBoard();
-  }},
-    h("div",{class:"fan","aria-hidden":"true"},h("span",{},"Cambio de plan"),h("span",{},"Agendamiento Hogar"),h("span",{},"Delivery")),
-    h("h2",{},"Antes de empezar"),
-    h("div",{class:"field"},h("label",{htmlFor:"nombre"},"Tu nombre"),inp,h("p",{class:"muted",style:"font-size:.88rem"},"Lo usaremos solo para consultarte si tenemos dudas sobre tus respuestas.")),
-    h("button",{class:"btn primary",type:"submit"},"Empezar a ordenar"));
-  app.replaceChildren(h("div",{class:"intro"},
-    h("div",{class:"intro-copy"},
-      h("h1",{},"Ayúdanos a ordenar One Touch"),
-      h("p",{},`Tienes ${CARDS.length} tarjetas con funciones y conceptos de la plataforma en Chile. Agrúpalas como tenga sentido para ti. No hay respuestas correctas ni incorrectas.`),
-      h("ol",{class:"how"},
-        h("li",{},h("b",{},"1"),h("span",{},"Toca varias tarjetas para seleccionarlas y arrástralas juntas a una categoría, o usa Mover aquí. En celular, mantén presionada una tarjeta para arrastrar. En computador, Shift + clic selecciona varias seguidas.")),
-        h("li",{},h("b",{},"2"),h("span",{},"Partes con Venta, Post Venta, Consulta y Transversales/Estructurales. Puedes cambiarles el nombre y crear otras categorías.")),
-        h("li",{},h("b",{},"3"),h("span",{},"Usa Deprecadas/Apagadas para lo que ya no se usa y No conozco este concepto para lo que no reconoces.")),
-        h("li",{},h("b",{},"4"),h("span",{},"Si falta algo, crea una tarjeta nueva con una breve descripción."))),
-      h("p",{class:"muted"},"Calcula entre 30 y 45 minutos. Tu avance se guarda solo, así que puedes pausar y volver desde este mismo equipo.")),
-    form));
-}
-
-function cardEl(id,from){
-  const n=BY_ID[id]?null:nueva(id);
-  const btn=h("button",{class:"tcard"+(n?" mod":""),type:"button","data-id":id,"data-from":from,"aria-pressed":String(selected.has(id)),onclick(e){if(dragJustEnded)return;toggle(id,e)},onpointerdown:dragStart},
-    label(id),n?h("small",{},n.d):null);
-  if(!n)return btn;
-  return h("div",{class:"cardwrap"},btn,h("button",{class:"edit",type:"button","aria-label":"Editar tarjeta "+n.n,title:"Editar tarjeta",onclick(){openCard(n)}},"✎"));
-}
-let lastPick=null;
-function toggle(id,e){
-  if(e&&e.shiftKey&&lastPick&&lastPick!==id){
-    const box=e.currentTarget.closest(".deck-list,.pile-cards");
-    const ids=box?[...box.querySelectorAll(".tcard")].map(n=>n.dataset.id):[];
-    const a=ids.indexOf(lastPick),b=ids.indexOf(id);
-    if(a>=0&&b>=0){ids.slice(Math.min(a,b),Math.max(a,b)+1).forEach(x=>selected.add(x));lastPick=id;render();return}
-  }
-  selected.has(id)?selected.delete(id):selected.add(id);lastPick=id;render();
-}
-function takeOut(set){S.deck=S.deck.filter(c=>!set.has(c));S.unknown=S.unknown.filter(c=>!set.has(c));S.depre=S.depre.filter(c=>!set.has(c));S.piles.forEach(g=>g.cards=g.cards.filter(c=>!set.has(c)))}
-function move(ids,target){
-  /* target: "deck" | UNKNOWN | DEPRE | id de categoría */
-  snapshot();
-  const set=new Set(ids);
-  takeOut(set);
-  if(target==="deck")S.deck.unshift(...ids);
-  else if(target===UNKNOWN)S.unknown.push(...ids);
-  else if(target===DEPRE)S.depre.push(...ids);
-  else S.piles.find(g=>g.id===target).cards.push(...ids);
-  selected.clear();lastPick=null;changed();render();
-}
-function newPile(ids,focus=true){
-  snapshot();
-  const g={id:"g"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:"",cards:[]};
-  if(ids&&ids.length){takeOut(new Set(ids));g.cards.push(...ids)}
-  S.piles.push(g);
-  selected.clear();changed();render();
-  if(focus){const i=document.getElementById("name-"+g.id);if(i){i.focus();i.scrollIntoView({block:"nearest"})}}
-  return g;
-}
-function deletePile(g){snapshot();S.deck.unshift(...g.cards);S.piles=S.piles.filter(p=>p!==g);changed();render()}
-function undo(){const s=undoStack.pop();if(!s)return;Object.assign(S,JSON.parse(s));selected.clear();changed();render()}
-
-function viewBoard(){
-  app.replaceChildren(
-    h("header",{class:"top",id:"top"},
-      h("span",{class:"name"},"Card Sorting One Touch"),
-      h("div",{class:"progress"},h("span",{class:"mono",id:"pcount"}),h("div",{class:"bar",role:"progressbar",id:"pbar","aria-label":"Tarjetas ordenadas","aria-valuemin":"0","aria-valuemax":String(CARDS.length)},h("i",{id:"pfill"}))),
-      h("span",{class:"saved",id:"saved","aria-live":"polite"}),
-      h("button",{class:"btn small",type:"button",id:"undo",onclick:undo},"Deshacer"),
-      h("button",{class:"btn small",type:"button",onclick:openResume},"Seguir en otro equipo"),
-      h("button",{class:"btn small primary",type:"button",id:"finish",onclick:openFinish},"Terminar")),
-    h("div",{class:"table"},
-      h("section",{class:"deck","aria-label":"Tarjetas por ordenar","data-drop":"deck"},
-        h("h2",{style:"font-size:1.05rem"},"Por ordenar"),
-        h("input",{type:"search",id:"search",placeholder:"Buscar tarjeta","aria-label":"Buscar tarjeta",value:query,oninput(e){query=e.target.value;renderDeck()}}),
-        h("div",{class:"deck-tools"},h("button",{class:"btn small",type:"button",id:"newcard",onclick(){openCard()}},"+ Nueva tarjeta")),
-        h("div",{class:"deck-list",id:"decklist"})),
-      h("section",{class:"board","aria-label":"Categorías",id:"board"})),
-    h("div",{class:"actionbar",id:"actionbar",hidden:true}));
-  const t=document.getElementById("top");document.documentElement.style.setProperty("--head",matchMedia("(max-width:800px)").matches?"0px":t.offsetHeight+"px");
-  render();
-}
-function renderDeck(){
-  const q=norm(query),list=document.getElementById("decklist");if(!list)return;
-  const ids=S.deck.filter(id=>!q||norm(label(id)).includes(q));
-  list.replaceChildren(...(ids.length?ids.map(id=>cardEl(id,"deck")):[h("p",{class:"empty"},S.deck.length?"Ninguna tarjeta coincide con tu búsqueda.":"Ordenaste todas las tarjetas. Revisa tus categorías y toca Terminar.")]));
-}
-function render(){
-  const total=CARDS.length,done=total-S.deck.length;
-  document.getElementById("pcount").textContent=done+"/"+total;
-  document.getElementById("pfill").style.width=(done/total*100)+"%";
-  document.getElementById("pbar").setAttribute("aria-valuenow",done);
-  document.getElementById("undo").disabled=!undoStack.length;
-  renderDeck();
-  const active=document.activeElement&&document.activeElement.id;
-  const pos=active&&active.startsWith("name-")?document.activeElement.selectionStart:null;
-  const piles=S.piles.map(g=>{
-    const isBase=!!g.base,renamed=isBase&&g.name.trim()!==BASE_NAME[g.base],mod=!isBase||renamed;
-    const tag=h("span",{class:"tag",id:"tag-"+g.id,hidden:!mod},isBase?"Editada":"Nueva");
-    const art=h("article",{class:"pile"+(mod?" mod":""),"data-drop":g.id,onclick(e){pileClick(e,g.id)}},
-      h("div",{class:"pile-head"},
-        h("input",{type:"text",id:"name-"+g.id,maxLength:60,placeholder:"Nombra esta categoría","aria-label":"Nombre de la categoría",value:g.name,oninput(e){g.name=e.target.value;changed();refreshFinish();
-          if(isBase){const m=g.name.trim()!==BASE_NAME[g.base];art.classList.toggle("mod",m);tag.hidden=!m}}}),
-        tag,h("span",{class:"count mono"},g.cards.length),
-        isBase?null:h("button",{class:"icon",type:"button","aria-label":"Eliminar categoría y devolver sus tarjetas",title:"Eliminar categoría",onclick(){deletePile(g)}},"✕")),
-      selected.size?moveHere(g.id):null,
-      h("div",{class:"pile-cards"},g.cards.map(id=>cardEl(id,g.id))),
-      !g.cards.length&&!selected.size?h("p",{class:"drop-hint"},"Mueve tarjetas aquí"):null);
-    return art});
-  const fixedPile=(key,list)=>h("article",{class:"unknown","data-drop":key,onclick(e){pileClick(e,key)}},
-    h("div",{class:"pile-head"},h("h3",{style:"margin-right:auto"},FIXED[key]),h("span",{class:"fixed-tag"},"Nombre fijo"),h("span",{class:"count mono"},list.length)),
-    selected.size?moveHere(key):null,
-    h("div",{class:"pile-cards"},list.map(id=>cardEl(id,key))),
-    !list.length&&!selected.size?h("p",{class:"drop-hint"},"Mueve tarjetas aquí"):null);
-  document.getElementById("board").replaceChildren(
-    h("div",{class:"fixed-row"},fixedPile(DEPRE,S.depre),fixedPile(UNKNOWN,S.unknown)),
-    h("p",{class:"legend"},h("span",{class:"tag"},"Morado"),"Categorías y tarjetas que creaste o cambiaste."),
-    h("div",{class:"piles"},piles,h("button",{class:"newpile",type:"button","data-drop":"new",onclick(){newPile(selected.size?[...selected]:null)}},"+ Nueva categoría")));
-  if(active&&active.startsWith("name-")){const i=document.getElementById(active);if(i){i.focus();if(pos!=null)i.setSelectionRange(pos,pos)}}
-  const bar=document.getElementById("actionbar");
-  bar.hidden=!selected.size;
-  if(selected.size)bar.replaceChildren(
-    h("span",{},(selected.size===1?"1 tarjeta seleccionada":selected.size+" tarjetas seleccionadas")+". Arrastra cualquiera de ellas para moverlas juntas."),
-    h("button",{class:"btn small primary",type:"button",onclick:openMove},"Mover a…"),
-    h("button",{class:"btn small",type:"button",onclick(){selected.clear();render()}},"Quitar selección"));
-  refreshFinish();
-}
-const moveHere=id=>h("button",{class:"btn small primary",type:"button","data-move":id,onclick(){move([...selected],id)}},"Mover aquí");
-function pileClick(e,id){if(selected.size&&!e.target.closest("button,input"))move([...selected],id)}
-function finishProblem(){
-  if(S.deck.length)return`Faltan ${S.deck.length} tarjetas por ordenar.`;
-  if(S.piles.some(g=>!g.name.trim()))return"Falta nombrar una categoría.";
-  if(S.piles.some(g=>!g.base&&!g.cards.length))return"Hay una categoría nueva vacía. Elimínala o mueve tarjetas a ella.";
-  return"";
-}
-function refreshFinish(){const b=document.getElementById("finish");if(b)b.title=finishProblem()}
-function openMove(){
-  const ids=[...selected];
-  const input=h("input",{type:"text",id:"newname",maxLength:60,placeholder:"Nombre de la nueva categoría","aria-label":"Nombre de la nueva categoría"});
-  dlg.replaceChildren(h("form",{class:"dlg",method:"dialog"},
-    h("h2",{},"Mover "+(ids.length===1?"1 tarjeta":ids.length+" tarjetas")),
-    h("div",{class:"movelist"},
-      S.piles.map(g=>h("button",{class:"btn",type:"button",onclick(){dlg.close();move(ids,g.id)}},(g.name||"Categoría sin nombre")+" ("+g.cards.length+")")),
-      h("button",{class:"btn",type:"button",onclick(){dlg.close();move(ids,DEPRE)}},FIXED[DEPRE]),
-      h("button",{class:"btn",type:"button",onclick(){dlg.close();move(ids,UNKNOWN)}},FIXED[UNKNOWN]),
-      h("button",{class:"btn",type:"button",onclick(){dlg.close();move(ids,"deck")}},"Devolver a Por ordenar")),
-    h("div",{class:"row"},h("div",{style:"flex:1;min-width:180px"},input),h("button",{class:"btn primary",type:"button",onclick(){const n=input.value.trim();dlg.close();const g=newPile(ids,!n);if(n){g.name=n;changed();render()}}},"Crear")),
-    h("div",{class:"row end"},h("button",{class:"btn",type:"button",onclick(){dlg.close()}},"Cancelar"))));
-  dlg.showModal();
-}
-function openCard(card){
-  const editing=!!card;
-  const name=h("input",{type:"text",id:"card-name",maxLength:70,required:true,value:card?card.n:""});
-  const desc=h("textarea",{id:"card-desc",maxLength:240,required:true,value:card?card.d:"",placeholder:"¿Qué es y para qué sirve?"});
-  const form=h("form",{class:"dlg",onsubmit(e){e.preventDefault();
-    const n=name.value.trim(),d=desc.value.trim();if(!n||!d)return;
-    snapshot();
-    if(editing){const c=nueva(card.id);c.n=n;c.d=d}
-    else{const id="n"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);S.nuevas.push({id,n,d});S.deck.unshift(id)}
-    query="";const si=document.getElementById("search");if(si)si.value="";
-    dlg.close();changed();render();
-  }},
-    h("h2",{},editing?"Editar tarjeta":"Nueva tarjeta"),
-    h("p",{class:"muted"},"Agrega un concepto que falte en la lista o que sea nuevo."),
-    h("div",{class:"field"},h("label",{htmlFor:"card-name"},"Nombre"),name),
-    h("div",{class:"field"},h("label",{htmlFor:"card-desc"},"Breve descripción"),desc),
-    h("div",{class:"row end"},
-      editing?h("button",{class:"btn danger",type:"button",style:"margin-right:auto",onclick(){snapshot();const set=new Set([card.id]);takeOut(set);S.nuevas=S.nuevas.filter(c=>c.id!==card.id);selected.delete(card.id);dlg.close();changed();render()}},"Eliminar tarjeta"):null,
-      h("button",{class:"btn",type:"button",onclick(){dlg.close()}},"Cancelar"),
-      h("button",{class:"btn primary",type:"submit"},editing?"Guardar":"Crear tarjeta")));
-  dlg.replaceChildren(form);dlg.showModal();name.focus();
-}
-function openResume(){
-  const url=location.href.split("#")[0]+"#s-"+S.id;
-  const msg=h("p",{class:"muted"},"Este enlace es solo tuyo. Abre con él este mismo card sorting en otro equipo.");
-  const inp=h("input",{type:"text",id:"resume-url",readOnly:true,value:url,"aria-label":"Enlace para continuar"});
-  dirty=true;pushSave();
-  dlg.replaceChildren(h("div",{class:"dlg"},h("h2",{},"Seguir en otro equipo"),msg,inp,
-    h("div",{class:"row end"},
-      h("button",{class:"btn",type:"button",onclick(){dlg.close()}},"Cerrar"),
-      h("button",{class:"btn primary",type:"button",onclick(e){const b=e.target;navigator.clipboard.writeText(url).then(()=>{b.textContent="Enlace copiado"},()=>{inp.select()})}},"Copiar enlace"))));
-  dlg.showModal();
-}
-function openFinish(){
-  const prob=finishProblem();
-  if(prob){dlg.replaceChildren(h("div",{class:"dlg"},h("h2",{},"Aún falta un paso"),h("p",{},prob),h("div",{class:"row end"},h("button",{class:"btn primary",type:"button",onclick(){dlg.close()}},"Seguir ordenando"))));dlg.showModal();return}
-  const ta=h("textarea",{id:"comentario",maxLength:2000,placeholder:"¿Alguna tarjeta te costó ubicar? ¿Algo que quieras contarnos?"});
-  const err=h("p",{class:"err",hidden:true,role:"alert"});
-  const send=h("button",{class:"btn primary",type:"button",async onclick(){
-    send.disabled=true;send.textContent="Enviando…";err.hidden=true;
-    try{clearTimeout(saveTimer);await rpc("guardar_respuesta_v2",payload(true,ta.value.trim()));S.done=true;persist();dlg.close();viewDone()}
-    catch{err.textContent="No pudimos enviar tus respuestas. Revisa tu conexión e inténtalo de nuevo; nada se perdió.";err.hidden=false;send.disabled=false;send.textContent="Enviar respuestas"}
-  }},"Enviar respuestas");
-  dlg.replaceChildren(h("div",{class:"dlg"},h("h2",{},"Enviar tus respuestas"),
-    h("p",{},`Tienes ${S.piles.length} categorías, ${S.depre.length} tarjetas en Deprecadas/Apagadas, ${S.unknown.length} en No conozco este concepto y ${S.nuevas.length===1?"1 tarjeta nueva":S.nuevas.length+" tarjetas nuevas"}. Después de enviar ya no podrás cambiarlas.`),
-    h("div",{class:"field"},h("label",{htmlFor:"comentario"},"Comentario (opcional)"),ta),err,
-    h("div",{class:"row end"},h("button",{class:"btn",type:"button",onclick(){dlg.close()}},"Seguir revisando"),send)));
-  dlg.showModal();
-}
-function viewDone(){
-  app.replaceChildren(h("div",{class:"done"},h("h1",{},"¡Gracias!"),h("p",{},"Tus respuestas quedaron guardadas. Nos ayudarán a ordenar One Touch."),
-    h("p",{class:"muted"},"¿Este equipo es compartido? ",h("button",{class:"link",type:"button",onclick(){store.clear();S=null;viewIntro()}},"Dejarlo listo para otra persona"))));
-}
-
-/* arrastre: mouse y lápiz directo; táctil con presión larga. Arrastrar con selección mueve todas las seleccionadas. */
-let drag=null,dragJustEnded=false;
-function beginDrag(x,y){
-  drag.active=true;
-  if(selected.size)selected.add(drag.id);
-  drag.ids=selected.has(drag.id)?[...selected]:[drag.id];
-  drag.ghost=h("div",{class:"tcard ghost"},label(drag.id),drag.ids.length>1?h("em",{},drag.ids.length):null);
-  document.body.append(drag.ghost);
-  drag.ids.forEach(id=>{const n=document.querySelector(`.tcard[data-id="${id}"]`);if(n)n.classList.add("ghosted")});
-  if(navigator.vibrate)try{navigator.vibrate(15)}catch{}
-  follow(x,y);
-}
-function follow(x,y){
-  drag.ghost.style.left=x+"px";drag.ghost.style.top=y+"px";
-  const t=document.elementFromPoint(x,y),zone=t&&t.closest("[data-drop]");
-  if(zone!==drag.over){if(drag.over)drag.over.classList.remove("is-over");if(zone)zone.classList.add("is-over");drag.over=zone}
-  const m=70,v=y<m?-14:y>innerHeight-m?14:0;if(v)scrollBy(0,v);
-}
-function finishDrag(){
-  const d=drag;drag=null;if(!d)return;clearTimeout(d.timer);if(!d.active)return;
-  d.ghost.remove();if(d.over)d.over.classList.remove("is-over");
-  document.querySelectorAll(".ghosted").forEach(n=>n.classList.remove("ghosted"));
-  dragJustEnded=true;setTimeout(()=>dragJustEnded=false,d.touch?400:50);
-  if(!d.over)return;
-  const z=d.over.dataset.drop;
-  if(z==="new")newPile(d.ids);else move(d.ids,z);
-}
-function dragStart(e){
-  if(e.pointerType==="touch")return;
-  if(e.button!==0)return;
-  drag={id:e.currentTarget.dataset.id,x:e.clientX,y:e.clientY,active:false,ghost:null,over:null,ids:null};
-  addEventListener("pointermove",dragMove);addEventListener("pointerup",dragEnd,{once:true});
-}
-function dragMove(e){
-  if(!drag)return;
-  if(!drag.active){if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<6)return;beginDrag(e.clientX,e.clientY);return}
-  follow(e.clientX,e.clientY);
-}
-function dragEnd(){removeEventListener("pointermove",dragMove);finishDrag()}
-document.addEventListener("touchstart",e=>{
-  const card=e.target.closest&&e.target.closest(".tcard[data-id]");
-  if(!card||e.touches.length>1||drag)return;
-  const t=e.touches[0];
-  drag={id:card.dataset.id,x:t.clientX,y:t.clientY,active:false,ghost:null,over:null,ids:null,touch:true};
-  drag.timer=setTimeout(()=>{if(drag&&drag.touch&&!drag.active)beginDrag(drag.x,drag.y)},350);
-},{passive:true});
-document.addEventListener("touchmove",e=>{
-  if(!drag||!drag.touch)return;
-  const t=e.touches[0];
-  if(!drag.active){if(Math.hypot(t.clientX-drag.x,t.clientY-drag.y)>8){clearTimeout(drag.timer);drag=null}return}
-  e.preventDefault();follow(t.clientX,t.clientY);
-},{passive:false});
-document.addEventListener("touchend",e=>{if(drag&&drag.touch){if(drag.active)e.preventDefault();finishDrag()}},{passive:false});
-document.addEventListener("touchcancel",()=>{if(drag&&drag.touch)finishDrag()});
-document.addEventListener("contextmenu",e=>{if(e.target.closest&&e.target.closest(".tcard"))e.preventDefault()});
-
-/* ---------- Resultados ---------- */
-const R={rows:[],key:"",persona:"",parciales:false,tab:"grupos",cut:.5,data:null,del:null};
-function viewLock(msg){
-  const inp=h("input",{type:"password",id:"clave",autocomplete:"off",required:true});
-  const form=h("form",{class:"panel",onsubmit(e){e.preventDefault();loadResults(inp.value.trim(),form)}},
-    h("h1",{style:"font-size:1.8rem"},"Resultados"),
-    h("div",{class:"field"},h("label",{htmlFor:"clave"},"Clave de resultados"),inp),
-    msg?h("p",{class:"err",role:"alert"},msg):null,
-    h("button",{class:"btn primary",type:"submit"},"Ver resultados"));
-  app.replaceChildren(h("div",{class:"res"},h("div",{class:"lock"},form)));
-}
-async function loadResults(key,form){
-  if(form){const b=form.querySelector("button");b.disabled=true;b.textContent="Cargando…"}
-  try{const rows=await rpc("resultados",{p_clave:key});R.rows=rows||[];R.key=key;try{sessionStorage.setItem("csot:k",key)}catch{}R.data=null;viewResults()}
-  catch(e){viewLock(e.status&&e.status<500?"La clave no es correcta.":"No pudimos conectar. Inténtalo de nuevo.")}
-}
-function filtered(){return R.rows.filter(r=>(R.parciales||r.completado)&&(!R.persona||r.id===R.persona))}
-function analyze(rows){
-  const n=CARDS.length,idx=Object.fromEntries(CARDS.map((c,i)=>[c.id,i]));
-  const tog=new Float64Array(n*n),both=new Float64Array(n*n),unk=new Float64Array(n),dep=new Float64Array(n),seen=new Float64Array(n);
-  const cats=new Map(),perCard=CARDS.map(()=>new Map());
-  for(const r of rows){
-    const gs=(r.grupos||[]);const placed=[];
-    for(const g of gs){
-      const ids=(g.c||[]).map(c=>idx[c]).filter(i=>i!=null);
-      if(g.n===UNKNOWN){ids.forEach(i=>{unk[i]++;seen[i]++});continue}
-      if(g.n===DEPRE){ids.forEach(i=>{dep[i]++;seen[i]++});continue}
-      const name=norm(g.n)||"(sin nombre)";
-      if(!cats.has(name))cats.set(name,{name:g.n||"(sin nombre)",people:0,cards:new Map(),base:g.k?BASE_NAME[g.k]:""});
-      const ct=cats.get(name);ct.people++;
-      for(const i of ids){seen[i]++;ct.cards.set(i,(ct.cards.get(i)||0)+1);const m=perCard[i];const e=m.get(name)||{name:g.n,count:0};e.count++;m.set(name,e)}
-      for(let a=0;a<ids.length;a++)for(let b=a+1;b<ids.length;b++){tog[ids[a]*n+ids[b]]++;tog[ids[b]*n+ids[a]]++}
-      placed.push(...ids);
-    }
-    for(let a=0;a<placed.length;a++)for(let b=a+1;b<placed.length;b++){both[placed[a]*n+placed[b]]++;both[placed[b]*n+placed[a]]++}
-  }
-  const sim=new Float64Array(n*n);for(let i=0;i<n*n;i++)sim[i]=both[i]?tog[i]/both[i]:0;
-  /* enlace promedio */
-  const D=new Float64Array(n*n);for(let i=0;i<n*n;i++)D[i]=1-sim[i];
-  const alive=Array.from({length:n},(_,i)=>i),size=new Array(n).fill(1),node=Array.from({length:n},(_,i)=>({leaf:i}));const merges=[];
-  while(alive.length>1){
-    let best=Infinity,x=-1,y=-1;
-    for(let a=0;a<alive.length;a++)for(let b=a+1;b<alive.length;b++){const d=D[alive[a]*n+alive[b]];if(d<best){best=d;x=a;y=b}}
-    const i=alive[x],j=alive[y];merges.push({i,j,sim:1-best});
-    node[i]={l:node[i],r:node[j]};
-    for(const k of alive){if(k===i||k===j)continue;const d=(D[i*n+k]*size[i]+D[j*n+k]*size[j])/(size[i]+size[j]);D[i*n+k]=d;D[k*n+i]=d}
-    size[i]+=size[j];alive.splice(y,1);
-  }
-  const order=[];(function walk(t){const st=[t];while(st.length){const c=st.pop();if(c.leaf!=null)order.push(c.leaf);else{st.push(c.r);st.push(c.l)}}})(node[alive[0]]);
-  return{n,sim,both,unk,dep,seen,cats,perCard,merges,order};
-}
-function cutClusters(d,t){
-  const p=Array.from({length:d.n},(_,i)=>i),find=x=>{while(p[x]!==x)x=p[x]=p[p[x]];return x};
-  for(const m of d.merges)if(m.sim>=t&&m.sim>0)p[find(m.j)]=find(m.i);
-  const g=new Map();for(const i of d.order){const r=find(i);if(!g.has(r))g.set(r,[]);g.get(r).push(i)}
-  return[...g.values()].sort((a,b)=>b.length-a.length);
-}
-function viewResults(){
-  const rows=filtered();R.data=rows.length?analyze(rows):null;
-  const all=R.rows,comp=all.filter(r=>r.completado);
-  const stats=h("div",{class:"stats"},
-    stat(comp.length,"respuestas completas"),stat(all.length-comp.length,"en curso"),
-    stat(rows.length?Math.round(median(rows.map(r=>r.segundos))/60)+" min":"–","mediana de tiempo"),
-    stat(rows.length?median(rows.map(r=>catCount(r))):"–","mediana de categorías"));
-  const filters=h("div",{class:"filters"},
-    selectF("f-persona","Persona",[["","Todas"],...all.map(r=>[r.id,r.nombre])],R.persona,v=>{R.persona=v;viewResults()}),
-    h("label",{class:"check"},h("input",{type:"checkbox",id:"f-parc",checked:R.parciales,onchange(e){R.parciales=e.target.checked;viewResults()}}),"Incluir respuestas en curso"),
-    h("button",{class:"btn small",type:"button",onclick(){loadResults(R.key)}},"Actualizar"),
-    h("button",{class:"btn small",type:"button",onclick:exportLong,disabled:!rows.length},"Descargar respuestas (CSV)"),
-    h("button",{class:"btn small",type:"button",onclick:exportSim,disabled:!rows.length},"Descargar similitud (CSV)"));
-  const tabs=[["grupos","Agrupaciones"],["sim","Similitud"],["cats","Categorías"],["cards","Tarjetas"],["nuevas","Tarjetas nuevas"],["people","Participantes"]];
-  const tabbar=h("div",{class:"tabs",role:"tablist"},tabs.map(([k,t])=>h("button",{type:"button",role:"tab","aria-selected":String(R.tab===k),onclick(){R.tab=k;viewResults()}},t)));
-  const body=h("div",{id:"tabbody"});
-  app.replaceChildren(h("div",{class:"res"},h("h1",{style:"font-size:2rem"},"Resultados del card sorting"),stats,filters,tabbar,body));
-  if(R.tab==="people")body.append(tabPeople(rows));
-  else if(R.tab==="nuevas")body.append(tabNew(rows));
-  else if(!R.data)body.append(h("p",{class:"empty"},"Todavía no hay respuestas con estos filtros. Comparte el enlace con los participantes y vuelve a actualizar."));
-  else if(R.tab==="grupos")tabGroups(body);
-  else if(R.tab==="sim")tabSim(body);
-  else if(R.tab==="cats")tabCats(body,rows);
-  else tabCards(body,rows);
-}
-const catCount=r=>(r.grupos||[]).filter(g=>!isFixed(g.n)&&(g.c||[]).length).length;
-const stat=(v,l)=>h("div",{class:"stat"},h("b",{},v),h("span",{},l));
-function selectF(id,lab,opts,val,fn){return h("div",{class:"field"},h("label",{htmlFor:id},lab),h("select",{id,onchange(e){fn(e.target.value)}},opts.map(([v,t])=>h("option",{value:v,selected:v===val},t))))}
-function tabGroups(body){
-  const d=R.data;
-  const out=h("div",{class:"clusters"}),lbl=h("span",{class:"mono"});
+(function(){
+  var URL_SB="https://jdqagvkvxbzlfayuyzbw.supabase.co/rest/v1/rpc/progreso",KEY="sb_publishable_RlS6hqg_b8zY1mswYhgr2g_lXdyMnJb";
+  var data=[],ronda="general";
+  function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+  function hace(iso){var m=Math.round((Date.now()-new Date(iso))/60000);if(m<60)return m<=1?"hace un momento":"hace "+m+" min";var h=Math.round(m/60);if(h<24)return "hace "+h+" h";var d=Math.round(h/24);return d===1?"hace 1 día":"hace "+d+" días"}
   function draw(){
-    const cs=cutClusters(d,R.cut),multi=cs.filter(c=>c.length>1),single=cs.filter(c=>c.length===1);
-    lbl.textContent=pct(R.cut)+" · "+multi.length+" grupos";
-    out.replaceChildren(...multi.map(c=>{
-      const votes=new Map();c.forEach(i=>d.perCard[i].forEach((e,k)=>{const v=votes.get(k)||{name:e.name,count:0};v.count+=e.count;votes.set(k,v)}));
-      const top=[...votes.values()].sort((a,b)=>b.count-a.count)[0];
-      return h("article",{class:"cluster"},h("h3",{},top?top.name:"Sin nombre"),h("p",{class:"muted",style:"font-size:.85rem"},c.length+" tarjetas · nombre más usado"),h("ul",{},c.map(i=>h("li",{},CARDS[i].l))));
-    }),...(single.length?[h("article",{class:"cluster"},h("h3",{},"Sin grupo claro"),h("p",{class:"muted",style:"font-size:.85rem"},single.length+" tarjetas"),h("ul",{},single.map(c=>h("li",{},CARDS[c[0]].l))))]:[]));
+    var rows=data.filter(function(r){return r.ronda===ronda});
+    var done=rows.filter(function(r){return r.completado}).length,list=document.getElementById("prog-list"),k=document.getElementById("prog-kpis");
+    var avg=rows.length?Math.round(rows.reduce(function(s,r){return s+(r.completado?1:r.ordenadas/Math.max(1,r.total))},0)/rows.length*100):0;
+    k.replaceChildren();[[rows.length,"personas empezaron"],[done,"terminaron"],[rows.length-done,"pendientes"],[avg+"%","avance promedio"]].forEach(function(x){var d=el("div","kpi");d.append(el("b",null,x[0]),el("span",null,x[1]));k.append(d)});
+    rows.sort(function(a,b){if(a.completado!==b.completado)return a.completado?1:-1;var pa=a.ordenadas/Math.max(1,a.total),pb=b.ordenadas/Math.max(1,b.total);return pb-pa});
+    list.replaceChildren();
+    if(!rows.length){list.append(el("p","note","Nadie ha empezado esta ronda todavía. ¡Sé la primera persona!"));return}
+    rows.forEach(function(r){
+      var p=r.completado?100:Math.round(100*r.ordenadas/Math.max(1,r.total)),falta=r.total-r.ordenadas;
+      var row=el("div","person"),n=el("div","pname",r.nombre);n.append(el("small",null,"Última actividad "+hace(r.actualizado)));
+      var tr=el("div","ptrack"),i=el("i");i.style.width=Math.max(p,2)+"%";i.style.background=r.completado?"#1f7a45":p>=50?"#d9a21b":"#c4493b";tr.append(i);
+      var st=el("div","pst "+(r.completado?"ok-t":p>0?"mid-t":"zero-t"),r.completado?"✓ Terminó":falta===0?"Falta enviar":p===0?"Sin empezar":"Le faltan "+falta);
+      row.append(n,tr,st);list.append(row)});
   }
-  body.append(h("div",{style:"display:grid;gap:12px"},
-    h("p",{class:"note"},"Grupos calculados con agrupamiento jerárquico. Dos tarjetas quedan juntas cuando un porcentaje suficiente de personas las puso en la misma categoría. Súbelo para exigir más acuerdo."),
-    h("div",{class:"slider"},h("label",{htmlFor:"cut",class:"label"},"Acuerdo mínimo"),h("input",{type:"range",id:"cut",min:"10",max:"100",step:"5",value:String(Math.round(R.cut*100)),oninput(e){R.cut=+e.target.value/100;draw()}}),lbl),out));
-  draw();
-}
-function tabSim(body){
-  const d=R.data,n=d.n,cell=Math.max(5,Math.min(9,Math.floor((Math.min(innerWidth,1240)-60)/n)));
-  const c=h("canvas",{width:n*cell,height:n*cell,role:"img","aria-label":"Matriz de similitud entre tarjetas. La tabla inferior lista los pares más fuertes."});
-  const tip=h("div",{class:"tip",hidden:true});
-  const cs=getComputedStyle(document.documentElement);const ctx=c.getContext("2d");
-  ctx.fillStyle=cs.getPropertyValue("--surface");ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle=cs.getPropertyValue("--accent");
-  d.order.forEach((a,y)=>d.order.forEach((b,x)=>{const v=a===b?1:d.sim[a*n+b];if(v>0){ctx.globalAlpha=v;ctx.fillRect(x*cell,y*cell,cell,cell)}}));ctx.globalAlpha=1;
-  c.addEventListener("pointermove",e=>{const r=c.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)/cell),y=Math.floor((e.clientY-r.top)/cell);const a=d.order[y],b=d.order[x];if(a==null||b==null)return;tip.hidden=false;tip.textContent=`${CARDS[a].l} + ${CARDS[b].l}: ${a===b?"–":pct(d.sim[a*n+b])}`;tip.style.left=Math.min(e.clientX+12,innerWidth-330)+"px";tip.style.top=e.clientY+14+"px"});
-  c.addEventListener("pointerleave",()=>tip.hidden=true);
-  const pairs=[];for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)if(d.both[i*n+j])pairs.push([i,j,d.sim[i*n+j],d.both[i*n+j]]);
-  pairs.sort((a,b)=>b[2]-a[2]||b[3]-a[3]);
-  body.append(h("div",{style:"display:grid;gap:12px"},h("p",{class:"note"},"Cada celda es el porcentaje de personas que puso ese par de tarjetas en la misma categoría. Más intenso significa más acuerdo. Pasa el cursor para ver el par."),
-    h("div",{class:"heatwrap"},c),tip,h("h2",{},"Pares con más acuerdo"),
-    h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Tarjeta"),h("th",{},"Tarjeta"),h("th",{class:"num"},"Acuerdo"))),h("tbody",{},pairs.slice(0,30).map(p=>h("tr",{},h("td",{},CARDS[p[0]].l),h("td",{},CARDS[p[1]].l),h("td",{class:"num"},pct(p[2])))))))));
-}
-function tabCats(body,rows){
-  const list=[...R.data.cats.values()].sort((a,b)=>b.people-a.people);
-  body.append(h("div",{style:"display:grid;gap:12px"},h("p",{class:"note"},"Nombres de categoría unidos solo si coinciden al ignorar mayúsculas y tildes. Sinónimos como “Ventas” y “Venta nueva” aparecen por separado."),
-    h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Categoría"),h("th",{},"Partió como"),h("th",{class:"num"},"Personas"),h("th",{class:"num"},"Tarjetas"),h("th",{},"Tarjetas más frecuentes"))),
-    h("tbody",{},list.map(c=>{const top=[...c.cards.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5).map(([i,k])=>`${CARDS[i].l} (${k})`).join(" · ");return h("tr",{},h("td",{},c.name),h("td",{},c.base&&norm(c.base)!==norm(c.name)?c.base:c.base?"Base":"Nueva"),h("td",{class:"num"},c.people),h("td",{class:"num"},c.cards.size),h("td",{},top))}))))));
-}
-function tabCards(body,rows){
-  const d=R.data,tb=h("tbody");
-  const data=CARDS.map((c,i)=>{const tops=[...d.perCard[i].values()].sort((a,b)=>b.count-a.count);const total=tops.reduce((s,e)=>s+e.count,0);let best=-1,bv=0;for(let j=0;j<d.n;j++)if(j!==i&&d.sim[i*d.n+j]>bv){bv=d.sim[i*d.n+j];best=j}
-    return{c,i,top:tops[0],topShare:tops[0]&&total?tops[0].count/total:0,unk:d.seen[i]?d.unk[i]/d.seen[i]:0,dep:d.seen[i]?d.dep[i]/d.seen[i]:0,best,bv}});
-  function draw(q){const nq=norm(q);tb.replaceChildren(...data.filter(x=>!nq||norm(x.c.l).includes(nq)).sort((a,b)=>(b.unk+b.dep)-(a.unk+a.dep)||a.topShare-b.topShare).map(x=>h("tr",{},h("td",{},x.c.l,h("div",{class:"muted",style:"font-size:.8rem"},x.c.o.join(" | "))),h("td",{},x.top?x.top.name:"–"),h("td",{class:"num"},pct(x.topShare)),h("td",{class:"num"},pct(x.dep)),h("td",{},x.c.e&&x.c.e!=="Estructural"?x.c.e:"–"),h("td",{class:"num"},pct(x.unk)),h("td",{},x.best>=0?`${CARDS[x.best].l} (${pct(x.bv)})`:"–"))))}
-  body.append(h("div",{style:"display:grid;gap:12px"},h("div",{class:"field",style:"max-width:340px"},h("label",{htmlFor:"csearch"},"Buscar tarjeta"),h("input",{type:"search",id:"csearch",oninput(e){draw(e.target.value)}})),
-    h("p",{class:"note"},"Primero aparecen las tarjetas más marcadas como Deprecadas/Apagadas o No conozco este concepto, y luego las de menor acuerdo. Compara lo que marcaron con el estado del Excel."),
-    h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Tarjeta"),h("th",{},"Categoría más usada"),h("th",{class:"num"},"Acuerdo"),h("th",{class:"num"},"Deprecada/Apagada"),h("th",{},"Estado en Excel"),h("th",{class:"num"},"No conocida"),h("th",{},"Tarjeta más cercana"))),tb))));
-  draw("");
-}
-function placeOf(r,id){const g=(r.grupos||[]).find(g=>(g.c||[]).includes(id));return g?(FIXED[g.n]||g.n):"Sin ordenar"}
-function tabNew(rows){
-  const list=rows.flatMap(r=>(r.nuevas||[]).map(c=>({r,c})));
-  if(!list.length)return h("p",{class:"empty"},"Todavía nadie ha creado tarjetas nuevas.");
-  return h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Tarjeta"),h("th",{},"Descripción"),h("th",{},"Categoría"),h("th",{},"Persona"))),
-    h("tbody",{},list.map(({r,c})=>h("tr",{},h("td",{},c.n),h("td",{},c.d),h("td",{},placeOf(r,c.id)),h("td",{},r.nombre))))));
-}
-function cardName(r,id){return BY_ID[id]?BY_ID[id].l:((r.nuevas||[]).find(c=>c.id===id)||{}).n||id}
-function openPerson(r){
-  const groups=(r.grupos||[]).filter(g=>(g.c||[]).length);
-  dlg.replaceChildren(h("div",{class:"dlg"},h("h2",{},r.nombre),
-    h("div",{style:"max-height:60dvh;overflow:auto;display:grid;gap:.8rem"},groups.map(g=>h("section",{},h("h3",{},(FIXED[g.n]||g.n)+" ("+g.c.length+")"),h("ul",{style:"margin:.3rem 0 0;padding-left:1.1rem"},g.c.map(id=>h("li",{},cardName(r,id))))))),
-    h("div",{class:"row end"},h("button",{class:"btn",type:"button",onclick(){dlg.close()}},"Cerrar"))));
-  dlg.showModal();
-}
-function tabPeople(rows){
-  const list=rows.slice().reverse();
-  if(!list.length)return h("p",{class:"empty"},"Todavía no hay respuestas con estos filtros.");
-  return h("div",{class:"scroll"},h("table",{},h("thead",{},h("tr",{},h("th",{},"Nombre"),h("th",{},"Fecha"),h("th",{},"Estado"),h("th",{class:"num"},"Categorías"),h("th",{class:"num"},"Nuevas"),h("th",{class:"num"},"Min"),h("th",{},"Comentario"),h("th",{}),h("th",{}))),
-    h("tbody",{},list.map(r=>h("tr",{},h("td",{},r.nombre),h("td",{class:"mono"},new Date(r.creado).toLocaleDateString("es-CL")),h("td",{},r.completado?"Completa":`En curso (faltan ${r.sin_ordenar})`),h("td",{class:"num"},catCount(r)),h("td",{class:"num"},(r.nuevas||[]).length),h("td",{class:"num"},Math.round(r.segundos/60)),h("td",{},r.comentario),h("td",{},h("button",{class:"btn small",type:"button",onclick(){openPerson(r)}},"Ver respuestas")),h("td",{},delBtn(r)))))));
-}
-function delBtn(r){
-  if(R.del!==r.id)return h("button",{class:"btn small",type:"button",onclick(){R.del=r.id;viewResults()}},"Eliminar");
-  return h("button",{class:"btn small danger",type:"button",async onclick(){try{await rpc("eliminar_respuesta",{p_clave:R.key,p_id:r.id});R.del=null;loadResults(R.key)}catch{R.del=null;viewResults()}}},"Confirmar");
-}
-function csvCell(v){v=String(v==null?"":v);if(/^[=+\-@]/.test(v))v="'"+v;return/[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
-function saveCsv(name,rows){
-  const t="﻿"+rows.map(r=>r.map(csvCell).join(";")).join("\r\n");
-  const a=h("a",{href:URL.createObjectURL(new Blob([t],{type:"text/csv;charset=utf-8"})),download:name});document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-}
-function exportLong(){
-  const out=[["persona","estado","minutos","categoria","categoria_base","tipo_categoria","tarjeta_id","tarjeta","descripcion_tarjeta_nueva","estado_excel","origen_excel"]];
-  filtered().forEach(r=>{(r.grupos||[]).forEach(g=>(g.c||[]).forEach(id=>{const c=BY_ID[id],n=c?null:(r.nuevas||[]).find(x=>x.id===id);if(!c&&!n)return;
-    const tipo=isFixed(g.n)?"fija":g.k?(g.n.trim()===BASE_NAME[g.k]?"base":"base editada"):"nueva";
-    out.push([r.nombre,r.completado?"completa":"en curso",Math.round(r.segundos/60),FIXED[g.n]||g.n,g.k?BASE_NAME[g.k]:"",tipo,id,c?c.l:n.n,n?n.d:"",c&&c.e?c.e:"",c?c.o.join(" | "):"tarjeta creada por participante"])}))});
-  saveCsv("card-sorting-ot-respuestas.csv",out);
-}
-function exportSim(){
-  const d=R.data,o=d.order;
-  saveCsv("card-sorting-ot-similitud.csv",[["",...o.map(i=>CARDS[i].l)],...o.map(a=>[CARDS[a].l,...o.map(b=>a===b?"":Math.round(d.sim[a*d.n+b]*100))])]);
-}
-
-/* ---------- arranque ---------- */
-async function boot(){
-  const hash=location.hash;
-  if(hash==="#resultados"){let k=null;try{k=sessionStorage.getItem("csot:k")}catch{}return k?loadResults(k):viewLock()}
-  if(hash.startsWith("#s-")){
-    const id=hash.slice(3);
-    app.replaceChildren(h("p",{class:"empty"},"Recuperando tu avance…"));
-    try{
-      const r=await rpc("cargar_respuesta",{p_id:id});
-      if(!r)throw 0;
-      if(r.completado){S={...(store.get()||{}),done:true};return viewDone()}
-      const gs=r.grupos||[],nuevas=r.nuevas||[],valid=c=>BY_ID[c]||nuevas.some(n=>n.id===c),known=new Set();
-      const take=n=>{const c=((gs.find(g=>g.n===n)||{}).c||[]).filter(valid);c.forEach(x=>known.add(x));return c};
-      const unknown=take(UNKNOWN),depre=take(DEPRE);
-      const piles=gs.filter(g=>!isFixed(g.n)).map((g,i)=>{const cards=(g.c||[]).filter(valid);cards.forEach(c=>known.add(c));return{id:g.k||"g"+i+Date.now().toString(36),base:g.k||undefined,name:g.n||"",cards}});
-      S={id:r.id,nombre:r.nombre,deck:shuffle([...CARDS.map(c=>c.id),...nuevas.map(c=>c.id)].filter(c=>!known.has(c))),piles,unknown,depre,nuevas,seconds:r.segundos||0,done:false};
-      persist();history.replaceState(null,"",location.pathname);return viewBoard();
-    }catch{
-      app.replaceChildren(h("div",{class:"done"},h("h2",{},"No encontramos ese avance"),h("p",{},"Revisa que el enlace esté completo o empieza de nuevo."),h("button",{class:"btn primary",type:"button",onclick(){history.replaceState(null,"",location.pathname);boot()}},"Ir al inicio")));
-      return;
-    }
-  }
-  const saved=store.get();
-  if(saved&&saved.id){S=saved;if(S.done)return viewDone();return viewBoard()}
-  viewIntro();
-}
-addEventListener("hashchange",boot);
-boot();
+  function load(){var u=document.getElementById("prog-upd");u.textContent="Actualizando…";
+    fetch(URL_SB,{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:"{}"}).then(function(r){if(!r.ok)throw 0;return r.json()})
+      .then(function(j){data=j||[];u.textContent="Actualizado a las "+new Date().toLocaleTimeString("es-CL",{hour:"2-digit",minute:"2-digit"});draw()})
+      .catch(function(){u.textContent="No pudimos cargar el progreso. Revisa tu conexión y toca Actualizar."})}
+  document.querySelectorAll("#prog-tabs button").forEach(function(b){b.addEventListener("click",function(){ronda=b.dataset.r;document.querySelectorAll("#prog-tabs button").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});draw()})});
+  document.getElementById("prog-refresh").addEventListener("click",load);
+  load();setInterval(function(){if(document.visibilityState==="visible")load()},60000);
+})();
+(function(){
+  var pend=[];
+  document.querySelectorAll("[data-state]").forEach(function(el){
+    var s=null;try{s=JSON.parse(localStorage.getItem(el.dataset.state))}catch(e){}
+    if(!s||!s.id)return;
+    var btn=el.parentNode.querySelector(".btn");
+    if(s.done){el.textContent="✓ Ya enviaste esta ronda";if(btn){btn.textContent="Ver";}}
+    else{el.textContent="En curso en este equipo";if(btn)btn.textContent="Continuar";pend.push(el.parentNode.querySelector("h2,h3").textContent)}
+  });
+  if(pend.length){var r=document.getElementById("resume");r.hidden=false;r.textContent="Tienes en curso: "+pend.join(", ")+". Puedes continuar donde quedaste.";}
+})();
 </script>
 </body>
 </html>
